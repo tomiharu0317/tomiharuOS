@@ -1,3 +1,5 @@
+%include    "../modules/real/putc.s"
+
         BOOT_LOAD       equ     0x7c00
 
         ORG     BOOT_LOAD
@@ -27,10 +29,17 @@ ipl:
 
         mov     [BOOT.DRIVE], dl            ;ブートドライブを保存
 
-        mov     al, 'A'
-        mov     ah, 0x0E
-        mov     bx, 0x0000
-        int     0x10
+        push    word 'A'
+        call    putc
+        add     sp, 2
+
+        push    word 'B'
+        call    putc
+        add     sp, 2
+
+        push    word 'C'
+        call    putc
+        add     sp, 2
 
         ; 処理の終了
 
