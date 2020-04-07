@@ -1,0 +1,101 @@
+     1                                          BOOT_LOAD       equ     0x7c00
+     2                                  
+     3                                          ORG     BOOT_LOAD
+     4                                  ;マクロ
+     5                                  
+     6                                  %include    "../include/macro.s"
+     1                              <1> %macro  cdecl 1-*.nolist
+     2                              <1> 
+     3                              <1>     %rep  %0 - 1
+     4                              <1>         push    %{-1:-1}
+     5                              <1>         %rotate -1
+     6                              <1>     %endrep
+     7                              <1>     %rotate -1
+     8                              <1> 
+     9                              <1>         call    %1
+    10                              <1> 
+    11                              <1>     %if 1 < %0
+    12                              <1>         add     sp, (__BITS__ >> 3) * (%0 - 1)
+    13                              <1>     %endif
+    14                              <1> 
+    15                              <1> %endmacro
+     7                                  
+     8                                  ;エントリポイント
+     9                                  
+    10                                  entry:
+    11 00000000 EB58                            jmp     ipl
+    12                                  
+    13                                          ; BIOS Parameter Block
+    14                                  
+    15 00000002 90<rept>                        times 90 - ($ - $$) db 0x90
+    16                                  
+    17                                          ; Initial Program Loader
+    18                                  
+    19                                  ipl:
+    20                                  
+    21 0000005A FA                              cli                                 ;割り込みの禁止
+    22                                  
+    23 0000005B B80000                          mov     ax, 0x0000
+    24 0000005E 8ED8                            mov     ds, ax
+    25 00000060 8EC0                            mov     es, ax
+    26 00000062 8ED0                            mov     ss, ax
+    27 00000064 BC007C                          mov     sp, BOOT_LOAD
+    28                                  
+    29 00000067 FB                              sti                                 ;割り込みの許可
+    30                                  
+    31 00000068 8816[8600]                      mov     [BOOT.DRIVE], dl            ;ブートドライブを保存
+    32                                  
+    33                                          ;文字の表示
+    34                                  
+    35 0000006C 6A58E8170083C402               cdecl   putc, word 'X'
+    36 00000074 6A59E80F0083C402               cdecl   putc, word 'Y'
+    37 0000007C 6A5AE8070083C402               cdecl   putc, word 'Z'
+    38                                  
+    39                                          ; 処理の終了
+    40                                  
+    41 00000084 EBFE                            jmp     $
+    42                                  
+    43                                  ALIGN 2, db 0
+    44                                  BOOT:                                       ;ブートドライブに関する情報
+    45 00000086 0000                    .DRIVE:         dw  0                       ;ドライブ番号
+    46                                  
+    47                                  ;モジュール
+    48                                  
+    49                                  %include    "../modules/real/putc.s"
+     1                              <1> putc:
+     2                              <1> 
+     3                              <1>         ;スタックフレームの構築
+     4                              <1> 
+     5 00000088 55                  <1>         push    bp
+     6 00000089 89E5                <1>         mov     bp, sp                                  ;  +4 | 出力文字
+     7                              <1>                                                         ;  +2 | Instruction Pointer
+     8                              <1>                                                         ;BP+0 | BP
+     9                              <1> 
+    10                              <1>         ;破壊される可能性のあるレジスタを保存
+    11                              <1> 
+    12 0000008B 50                  <1>         push    ax
+    13 0000008C 53                  <1>         push    bx
+    14                              <1> 
+    15                              <1>         ;処理
+    16                              <1> 
+    17 0000008D 8A4604              <1>         mov     al, [bp + 4]
+    18 00000090 B40E                <1>         mov     ah, 0x0E
+    19 00000092 BB0000              <1>         mov     bx, 0x0000
+    20 00000095 CD10                <1>         int     0x10
+    21                              <1> 
+    22                              <1>         ;レジスタの復帰
+    23                              <1> 
+    24 00000097 5B                  <1>         pop     bx
+    25 00000098 58                  <1>         pop     ax
+    26                              <1> 
+    27                              <1>         ;スタックフレームの破棄
+    28                              <1> 
+    29 00000099 89EC                <1>         mov     sp, bp
+    30 0000009B 5D                  <1>         pop     bp
+    31                              <1> 
+    32 0000009C C3                  <1>         ret
+    50                                  
+    51                                  ;ブートフラグ(512biteの終了)
+    52                                  
+    53 0000009D 00<rept>                        times   510 - ($ - $$) db 0x00
+    54 000001FE 55AA                            db 0x55, 0xAA

@@ -1,8 +1,9 @@
-%include    "../modules/real/putc.s"
-
         BOOT_LOAD       equ     0x7c00
 
         ORG     BOOT_LOAD
+;マクロ
+
+%include    "../include/macro.s"
 
 ;エントリポイント
 
@@ -29,17 +30,11 @@ ipl:
 
         mov     [BOOT.DRIVE], dl            ;ブートドライブを保存
 
-        push    word 'A'
-        call    putc
-        add     sp, 2
+        ;文字の表示
 
-        push    word 'B'
-        call    putc
-        add     sp, 2
-
-        push    word 'C'
-        call    putc
-        add     sp, 2
+       cdecl   putc, word 'X'
+       cdecl   putc, word 'Y'
+       cdecl   putc, word 'Z'
 
         ; 処理の終了
 
@@ -48,6 +43,10 @@ ipl:
 ALIGN 2, db 0
 BOOT:                                       ;ブートドライブに関する情報
 .DRIVE:         dw  0                       ;ドライブ番号
+
+;モジュール
+
+%include    "../modules/real/putc.s"
 
 ;ブートフラグ(512biteの終了)
 
