@@ -30,15 +30,15 @@ ipl:
 
         mov     [BOOT.DRIVE], dl            ;ブートドライブを保存
 
-        ;文字の表示
+        ;文字列の表示
 
-       cdecl   putc, word 'X'
-       cdecl   putc, word 'Y'
-       cdecl   putc, word 'Z'
+        cdecl   puts, .s0                   ;puts(.s0)
 
         ; 処理の終了
 
         jmp     $
+
+.s0     db      "Booting...", 0x0A, 0x0D, 0
 
 ALIGN 2, db 0
 BOOT:                                       ;ブートドライブに関する情報
@@ -46,7 +46,7 @@ BOOT:                                       ;ブートドライブに関する�
 
 ;モジュール
 
-%include    "../modules/real/putc.s"
+%include    "../modules/real/puts.s"
 
 ;ブートフラグ(512biteの終了)
 

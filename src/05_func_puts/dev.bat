@@ -1,1 +1,1 @@
-co@cmd /K ..\..\env\env.bat
+@cmd /K ..\..\env\env.bat
