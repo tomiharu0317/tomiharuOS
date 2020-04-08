@@ -91,5 +91,21 @@ int_to_str:
         rep stosb                               ;   while (--cx) * DI-- = ' ';
 .40E:                                           ;}
 
+        ;レジスタの復帰
+
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+
+        ;スタックフレームの破棄
+
+        mov     sp, bp
+        pop     bp
+
+        ret
+
 
 .ascii  db      "0123456789ABCDEF"              ;変換テーブル
