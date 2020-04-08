@@ -34,14 +34,31 @@ ipl:
 
         cdecl   puts, .s0                   ;puts(.s0)
 
-        cdecl   reboot
+        ;次の512バイトを読み込む
+
+        mov     ah, 0x02                    ;AH = 読み込み命令
+        mov     al, 1                       ;AL = 読み込みセクタ数
+        mov     cx, 0x0002                  ;CX = シリンダ/セクタ
+        mov     dh, 0x00                    ;DH = ヘッド位置
+        mov     dl, [BOOT.DRIVE]            ;DL = ドライブ番号
+        mov     bx, 0x7C00 + 512            ;BX = 読み込みアドレス（オフセット）
+        int     0x13                        ;Cf = 0 if succeed, else 1
+.10Q:   jnc     .10E
+.10T:   cdecl   puts, .e0
+        call    reboot
+.10E:
+
+        ;次のステージへ移行
+
+        jmp     stage_2                     ;ブート処理の第2ステージへ
 
         ; 処理の終了
 
         jmp     $
 
 .s0     db      "Booting...", 0x0A, 0x0D, 0
-.s1     db      "--------",   0x0A, 0x0D, 0
+;.s1     db      "--------",   0x0A, 0x0D, 0
+.e0     db      "Error: sector read", 0
 
 ALIGN 2, db 0
 BOOT:                                       ;ブートドライブに関する情報
@@ -57,3 +74,10 @@ BOOT:                                       ;ブートドライブに関する�
 
         times   510 - ($ - $$) db 0x00
         db 0x55, 0xAA
+
+;ブート処理の第2ステージ
+
+stage_2:
+
+        ;文字列を表示
+        cdecl   puts, .s0
