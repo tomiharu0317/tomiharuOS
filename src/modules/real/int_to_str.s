@@ -43,3 +43,53 @@ int_to_str:
 .12E:
 .10E:
 
+        ;符号出力判定
+
+        test    bx, 0b0010
+.20Q    je      .20E
+        cmp     ax, 0
+.22Q    jge     .22F
+        neg     ax                              ;符号反転
+        mov     [si], byte '-'                  ;符号表示
+        jmp     .22E
+.22F:
+        mov     [si], byte '+'
+.22E:
+        dec     cx                              ;残りバッファサイズの減算 -> ?
+.20E:
+
+        ;ASCII変換
+
+        mov     bx, [bp + 10]                   ;BX = 基数
+
+.30L:                                           ;do{
+        mov     dx, 0
+        div     bx                              ;   DX = DX:AX % BX;
+                                                ;   AX = DX:AX / BX;
+
+        mov     si, dx                          ;   //変換テーブル参照
+        mov     dl, byte [.ascii + si]          ;   DL = ASCII[DX];
+
+        mov     [di], dl                        ;   *dest = DL;
+        dec     di                              ;   dest--;
+
+        cmp     ax, 0
+        loopnz  .30L                            ;} while(AX);
+
+.30E:
+
+        ;空欄をゼロ埋め/空白埋め
+
+        cmp     cx, 0                           ;if (size)
+.40Q:   je      .40E                            ;{
+        mov     al, ' '                         ;   AL = ' '; //空白埋め
+        cmp     [bp + 12], word 0b0100          ;   if (flags & 0x04)
+.42Q:   jne     .42E                            ;   {
+        mov     al, '0'                         ;       AL = '0'; //ゼロ埋め
+.42E:                                           ;   }
+        std                                     ;   // DF = 1(減算)
+        rep stosb                               ;   while (--cx) * DI-- = ' ';
+.40E:                                           ;}
+
+
+.ascii  db      "0123456789ABCDEF"              ;変換テーブル
