@@ -13,3 +13,10 @@
     %endif
 
 %endmacro
+
+struc   drive                               ;セクタ読み出し時のパラメータを構造体で定義
+            .no         resw    1           ;ドライブ番号
+            .cyln       resw    1           ;シリンダ
+            .head       resw    1           ;ヘッド
+            .sect       resw    1           ;セクタ
+entstruc
