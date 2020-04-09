@@ -30,12 +30,12 @@ get_drive_params:
 
             shr     cl, 6                               ;   CX = シリンダ数;
             ror     cx, 8
-            inc     cx                                  ;   ???
+            inc     cx                                  ;   //シリンダ番号は0始まりなので，最大シリンダ数を得るために1加算
 
             movzx   bx, dh                              ;   BX = ヘッド数(1ベース) //ゼロ拡張(2byte)
-            inc     bx
+            inc     bx                                  ;   //ヘッド番号も同様
 
-            mov     [si + drive.cyln], cx
+            mov     [si + drive.cyln], cx               ;   //オフセットアドレスに格納
             mov     [si + drive.head], bx
             mov     [si + drive.sect], ax
 

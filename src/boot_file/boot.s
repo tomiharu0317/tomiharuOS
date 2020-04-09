@@ -72,10 +72,9 @@ BOOT:
             at  drive.sect,     dw 2        ;セクタ
         iend
 
-;モジュール
+;モジュール(512バイト以降に配置)
 
 %include    "../modules/real/puts.s"
-%include    "../modules/real/int_to_str.s"
 %include    "../modules/real/reboot.s"
 %include    "../modules/real/read_sect.s"
 
@@ -84,12 +83,35 @@ BOOT:
         times   510 - ($ - $$) db 0x00
         db 0x55, 0xAA
 
+%include    "../modules/real/int_to_str.s"
+%include    "../modules/real/get_drive_params.s"
+
 ;ブート処理の第2ステージ
 
 stage_2:
 
         ;文字列を表示
         cdecl   puts, .s0
+
+        ;ドライブ情報を取得
+        cdecl   get_drive_params, BOOT          ;get_drive_params(DX, BOOT.CYLN);
+        cmp     ax, 0                           ;if (0 == AX){
+.10Q:   jne     .10E                            ;       puts(.e0);
+.10T:   cdecl   puts, .e0                       ;       reboot();
+        call    reboot                          ; }
+.10E:
+
+        ;ドライブ情報を表示
+        mov     ax, [BOOT + drive.no]           ;AX = ブートドライブ
+        cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
+        mov     ax, [BOOT + drive.cyln]           ;
+        cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
+        mov     ax, [BOOT + drive.head]           ;AX = ヘッド数
+        cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
+        mov     ax, [BOOT + drive.sect]           ;AX = トラック当たりのセクタ数
+        cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
+        cdecl   puts, .s1
+
 
         ;処理の終了
 
@@ -99,6 +121,14 @@ stage_2:
 
 .s0     db      "2nd stage...", 0x0A, 0x0D, 0
 
-;パディング（ファイルサイズは8Kバイト）
+.s1     db      " Drive:0x"
+.p1     db      "  , C:0x"
+.p2     db      "    , H:0x"
+.p3     db      "  , S:0x"
+.p4     db      "  ", 0x0A, 0x0D, 0
 
-        times   BOOT_SIZE - ($ - $$)       db  0
+.e0     db      "Can't get drive Parameter.", 0
+
+;パディング
+
+        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
