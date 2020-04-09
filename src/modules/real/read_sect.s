@@ -38,7 +38,7 @@ read_sect:
             mov     dl, [si + 0]                    ;DL = ドライブ番号
             mov     ax, 0x0000
             mov     es, ax                          ;ESセグメント初期化
-            mov     bx, [bx + 8]                    ;読み出し先アドレス
+            mov     bx, [bp + 8]                    ;読み出し先アドレス
 
             ; do{
             ;     AH = セクタ読み込み
@@ -70,7 +70,7 @@ read_sect:
             cmp     al, 0                           ; if (読み込んだセクタ数 > 0)
             jne     .10E                            ;   break;
 
-            mov     ax, 0
+            mov     ax, 0                           ;戻り値
             dec     word [bp - 2]
             jnz     .10L                            ;読み込んだセクタ数が0なら.10Lへ
 .10E:

@@ -19,4 +19,4 @@ struc   drive                               ;セクタ読み出し時のパラ�
             .cyln       resw    1           ;シリンダ
             .head       resw    1           ;ヘッド
             .sect       resw    1           ;セクタ
-entstruc
+endstruc

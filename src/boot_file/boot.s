@@ -1,20 +1,21 @@
-        BOOT_LOAD       equ     0x7c00
-
-        ORG     BOOT_LOAD
 ;マクロ
 
+%include    "../include/define.s"
 %include    "../include/macro.s"
+
+        ORG     BOOT_LOAD
+
 
 ;エントリポイント
 
 entry:
         jmp     ipl
 
-        ; BIOS Parameter Block
+; BIOS Parameter Block
 
         times 90 - ($ - $$) db 0x90
 
-        ; Initial Program Loader
+; Initial Program Loader
 
 ipl:
 
@@ -28,47 +29,55 @@ ipl:
 
         sti                                 ;割り込みの許可
 
-        mov     [BOOT.DRIVE], dl            ;ブートドライブを保存
+        ;ブートドライブ番号の保存
+
+        mov     [BOOT + drive.no], dl       ;ブートドライブを保存
 
         ;文字列の表示
 
         cdecl   puts, .s0                   ;puts(.s0)
 
-        ;次の512バイトを読み込む
+        ;残りのセクタをすべて読み込む
 
-        mov     ah, 0x02                    ;AH = 読み込み命令
-        mov     al, 1                       ;AL = 読み込みセクタ数
-        mov     cx, 0x0002                  ;CX = シリンダ/セクタ
-        mov     dh, 0x00                    ;DH = ヘッド位置
-        mov     dl, [BOOT.DRIVE]            ;DL = ドライブ番号
-        mov     bx, 0x7C00 + 512            ;BX = 読み込みアドレス（オフセット）
-        int     0x13                        ;Cf = 0 if succeed, else 1
-.10Q:   jnc     .10E
-.10T:   cdecl   puts, .e0
-        call    reboot
-.10E:
+        mov     bx, BOOT_SECT - 1           ;BX = 残りのブートセクト数
+        mov     cx, BOOT_LOAD + SECT_SIZE   ;CX = 次のロードアドレス
+
+        cdecl   read_sect, BOOT, bx, cx     ;AX = read_sect(BOOT, bx, cx)
+
+        cmp     ax, bx
+.10Q:   jz      .10E                        ;if (ax != 残りのセクタ数)
+
+.10T:   cdecl   puts, .e0                   ;{  puts(.e0);
+        call    reboot                      ;   reboot(); //再起動
+
+.10E:                                       ;}
 
         ;次のステージへ移行
 
         jmp     stage_2                     ;ブート処理の第2ステージへ
 
-        ; 処理の終了
+        ;データ
 
-        jmp     $
-
-.s0     db      "Booting...", 0x0A, 0x0D, 0
-;.s1     db      "--------",   0x0A, 0x0D, 0
+.s0     db      "booting...", 0x0A, 0x0D, 0
 .e0     db      "Error: sector read", 0
 
+;ブートドライブに関する情報
+
 ALIGN 2, db 0
-BOOT:                                       ;ブートドライブに関する情報
-.DRIVE:         dw  0                       ;ドライブ番号
+BOOT:
+        istruc  drive
+            at  drive.no,       dw 0        ;ドライブ番号
+            at  drive.cyln,     dw 0        ;シリンダ
+            at  drive.head,     dw 0        ;ヘッド
+            at  drive.sect,     dw 2        ;セクタ
+        iend
 
 ;モジュール
 
 %include    "../modules/real/puts.s"
 %include    "../modules/real/int_to_str.s"
 %include    "../modules/real/reboot.s"
+%include    "../modules/real/read_sect.s"
 
 ;ブートフラグ(512biteの終了)
 
@@ -92,4 +101,4 @@ stage_2:
 
 ;パディング（ファイルサイズは8Kバイト）
 
-        times   (1024 * 8) - ($ - $$)       db  0
+        times   BOOT_SIZE - ($ - $$)       db  0
