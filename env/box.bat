@@ -1,1 +1,1 @@
-@bochsdbg -q -f ..\..\env\bochsrc.bxrc -rc ..\..\env\cmd.init
+@bochsdbg -q -f ..\..\env\bochsrc.bxrc
