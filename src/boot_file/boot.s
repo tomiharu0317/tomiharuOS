@@ -155,7 +155,7 @@ stage_3:
         cdecl   puts, .s1
 
         ;メモリ情報の取得と表示
-        cdecl   get_mem_info, ACPI_DATA                 ;get_mem_info(&ACPI_DATA)
+        cdecl   get_mem_info              ;get_mem_info()
 
         mov     eax, [ACPI_DATA.adr]
         cmp     eax, 0
@@ -166,7 +166,7 @@ stage_3:
         cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ;上位アドレス
 
         cdecl   puts, .s2
-.10E
+.10E:
 
         ;処理の終了
         jmp     $

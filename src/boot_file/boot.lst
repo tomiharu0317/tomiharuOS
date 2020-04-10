@@ -86,7 +86,7 @@
     54                                  
     55                                          ;次のステージへ移行
     56                                  
-    57 00000096 E9ED02                          jmp     stage_2                     ;ブート処理の第2ステージへ
+    57 00000096 E90F05                          jmp     stage_2                     ;ブート処理の第2ステージへ
     58                                  
     59                                          ;データ
     60                                  
@@ -523,216 +523,314 @@
      9 000002F6 57                  <1>             push    di
     10 000002F7 55                  <1>             push    bp
     11                              <1> 
-    12 000002F8 BD0000              <1>             mov     bp, 0                           ; lines = 0; //行数
-    13 000002FB 66BB00000000        <1>             mov     ebx, 0                          ; index = 0; //初期化
-    14                              <1> .10L:                                               ; do
-    15                              <1>                                                     ; {
-    16 00000301 66B820E80000        <1>             mov     eax, 0x0000E820                 ;   EAX  = 0xE820;
-    17 00000307 66B914000000        <1>             mov     ecx, E820_RECORD_SIZE           ;   ECX  = 要求バイト数;
-    18 0000030D 66BA50414D53        <1>             mov     edx, 'PAMS'                     ;   EDX  = 'SMAP' //固定値
-    19                              <1>             mov     di, .b0                         ;   ES:DI= 書き込み先
-    19          ******************  <1>  error: symbol `get_mem_info.b0' undefined
-    20 00000313 CD15                <1>             int     0x15                            ;   BIOS(0x15, 0xE820);
-    21                              <1>                                                     ; }
-    22                              <1> 
-    23 00000315 663D50414D53        <1>             cmp     eax, 'PAMS'                     ; コマンド未対応なら終了
-    24 0000031B 7405                <1>             je      .12E
-    25 0000031D EB4F                <1>             jmp     .10E
-    26                              <1> 
-    27                              <1> .12E:
-    27          ******************  <1>  error: label `get_mem_info.12E' changed during code generation [-w+error=label-redef-late]
-    28                              <1> 
+    12                              <1>             ;文字列を表示
+    13 000002F8 68[8C03]E8C4FD83C4- <1>             cdecl   puts, .s0
+    13 00000300 02                  <1>
+    14                              <1> 
+    15 00000301 BD0000              <1>             mov     bp, 0                           ; lines = 0; //行数
+    16 00000304 66BB00000000        <1>             mov     ebx, 0                          ; index = 0; //初期化
+    17                              <1> .10L:                                               ; do
+    18                              <1>                                                     ; {
+    19 0000030A 66B820E80000        <1>             mov     eax, 0x0000E820                 ;   EAX  = 0xE820;
+    20 00000310 66B914000000        <1>             mov     ecx, E820_RECORD_SIZE           ;   ECX  = 要求バイト数;
+    21 00000316 66BA50414D53        <1>             mov     edx, 'PAMS'                     ;   EDX  = 'SMAP' //固定値
+    22 0000031C BF[1C04]            <1>             mov     di, .b0                         ;   ES:DI= 書き込み先
+    23 0000031F CD15                <1>             int     0x15                            ;   BIOS(0x15, 0xE820);
+    24                              <1>                                                     ; }
+    25                              <1> 
+    26 00000321 663D50414D53        <1>             cmp     eax, 'PAMS'                     ; コマンド未対応なら終了
+    27 00000327 7402                <1>             je      .12E
+    28 00000329 EB4C                <1>             jmp     .10E
     29                              <1> 
-    30 0000031F 7305                <1>             jnc     .14E                            ; CF 0:成功 1:失敗
-    31 00000321 EB4B                <1>             jmp     .10E
-    32                              <1> .14E:
-    32          ******************  <1>  error: label `get_mem_info.14E' changed during code generation [-w+error=label-redef-late]
-    33                              <1> 
-    34 00000323 5783C402            <1>             cdecl   put_mem_info, di                ; 1レコード分のメモリ情報を表示
-    34          ******************  <1>  error: symbol `put_mem_info' undefined
-    35                              <1> 
-    36                              <1>             ;ACPI data のアドレスを取得
-    37 00000327 668B4510            <1>             mov     eax, [di + 16]                  ; EAX = データタイプ
-    38 0000032B 6683F803            <1>             cmp     eax, 3                          ; 3:AddressRangeACPI
-    39 0000032F 7515                <1>             jne     .15E
-    40                              <1> 
-    41 00000331 668B05              <1>             mov     eax, [di + 0]                   ; EAX = BASE address
-    42 00000334 66A3[0402]          <1>             mov     [ACPI_DATA.adr], eax
+    30                              <1> .12E:
+    31                              <1> 
+    32                              <1> 
+    33 0000032B 7302                <1>             jnc     .14E                            ; CF 0:成功 1:失敗
+    34 0000032D EB48                <1>             jmp     .10E
+    35                              <1> .14E:
+    36                              <1> 
+    37 0000032F 57E8FD0083C402      <1>             cdecl   put_mem_info, di                ; 1レコード分のメモリ情報を表示
+    38                              <1> 
+    39                              <1>             ;ACPI data のアドレスを取得
+    40 00000336 668B4510            <1>             mov     eax, [di + 16]                  ; EAX = データタイプ
+    41 0000033A 6683F803            <1>             cmp     eax, 3                          ; 3:AddressRangeACPI
+    42 0000033E 750F                <1>             jne     .15E
     43                              <1> 
-    44 00000338 668B4508            <1>             mov     eax, [di + 8]
-    45 0000033C 66A3[0802]          <1>             mov     [ACPI_DATA.len], eax
-    46                              <1> .15E:
-    46          ******************  <1>  error: label `get_mem_info.15E' changed during code generation [-w+error=label-redef-late]
-    47                              <1> 
-    48 00000340 6683FB00            <1>             cmp     ebx, 0
-    49 00000344 7422                <1>             jz      .16E
+    44 00000340 668B05              <1>             mov     eax, [di + 0]                   ; EAX = BASE address
+    45 00000343 66A3[0402]          <1>             mov     [ACPI_DATA.adr], eax
+    46                              <1> 
+    47 00000347 668B4508            <1>             mov     eax, [di + 8]
+    48 0000034B 66A3[0802]          <1>             mov     [ACPI_DATA.len], eax
+    49                              <1> .15E:
     50                              <1> 
-    51 00000346 45                  <1>             inc     bp                              ; lines++
-    52 00000347 83E507              <1>             and     bp, 0x07                        ; lines &= 0x07; //メモリ情報を8行表示するたびに
-    53 0000034A 751C                <1>             jnz     .16E                            ;                //ユーザーからのキー入力があるまで
-    54                              <1>                                                     ;                //処理を中断
-    55 0000034C 68[6E03]E870FD83C4- <1>             cdecl   puts, .s2                       ; 中断メッセージ
-    55 00000354 02                  <1>
-    56 00000355 B410                <1>             mov     ah, 0x10                        ; キー入力待ち
-    57 00000357 CD16                <1>             int     0x16
-    58                              <1> 
-    59 00000359 68[7903]E863FD83C4- <1>             cdecl   puts, .s3
-    59 00000361 02                  <1>
-    60                              <1> .16E:
-    60          ******************  <1>  error: label `get_mem_info.16E' changed during code generation [-w+error=label-redef-late]
+    51 0000034F 6683FB00            <1>             cmp     ebx, 0
+    52 00000353 741C                <1>             jz      .16E
+    53                              <1> 
+    54 00000355 45                  <1>             inc     bp                              ; lines++
+    55 00000356 83E507              <1>             and     bp, 0x07                        ; lines &= 0x07; //メモリ情報を8行表示するたびに
+    56 00000359 7516                <1>             jnz     .16E                            ;                //ユーザーからのキー入力があるまで
+    57                              <1>                                                     ;                //処理を中断
+    58 0000035B 68[0304]E861FD83C4- <1>             cdecl   puts, .s2                       ; 中断メッセージ
+    58 00000363 02                  <1>
+    59 00000364 B410                <1>             mov     ah, 0x10                        ; キー入力待ち
+    60 00000366 CD16                <1>             int     0x16
     61                              <1> 
-    62 00000362 6683FB00            <1>             cmp     ebx, 0
-    63 00000366 7599                <1>             jne     .10L
-    64                              <1> .10E:
-    64          ******************  <1>  error: label `get_mem_info.10E' changed during code generation [-w+error=label-redef-late]
-    65                              <1> 
-    66 00000368 203C6D6F72652E2E2E- <1> .s2:        db  " <more...>", 0
-    66          ******************  <1>  error: label `get_mem_info.s2' changed during code generation [-w+error=label-redef-late]
-    66 00000371 3E00                <1>
-    67 00000373 0D2020202020202020- <1> .s3:        db  0x0D, "          ", 0x0D, 0
-    67          ******************  <1>  error: label `get_mem_info.s3' changed during code generation [-w+error=label-redef-late]
-    67 0000037C 20200D00            <1>
+    62 00000368 68[0E04]E854FD83C4- <1>             cdecl   puts, .s3
+    62 00000370 02                  <1>
+    63                              <1> .16E:
+    64                              <1> 
+    65 00000371 6683FB00            <1>             cmp     ebx, 0
+    66 00000375 7593                <1>             jne     .10L
+    67                              <1> .10E:
+    68                              <1> 
+    69 00000377 68[D103]E845FD83C4- <1>             cdecl   puts, .s1
+    69 0000037F 02                  <1>
+    70                              <1> 
+    71                              <1>             ;レジスタの復帰
+    72 00000380 5D                  <1>             pop     bp
+    73 00000381 5F                  <1>             pop     di
+    74 00000382 5E                  <1>             pop     si
+    75 00000383 665A                <1>             pop     edx
+    76 00000385 6659                <1>             pop     ecx
+    77 00000387 665B                <1>             pop     ebx
+    78 00000389 6658                <1>             pop     eax
+    79                              <1> 
+    80 0000038B C3                  <1>             ret
+    81                              <1> 
+    82 0000038C 2045383230204D656D- <1> .s0:        db  " E820 Memory Map:", 0x0A, 0x0D
+    82 00000395 6F7279204D61703A0A- <1>
+    82 0000039E 0D                  <1>
+    83 0000039F 20426173655F5F5F5F- <1>             db  " Base_____________ Length_____________ Type____", 0x0A, 0x0D, 0
+    83 000003A8 5F5F5F5F5F5F5F5F5F- <1>
+    83 000003B1 204C656E6774685F5F- <1>
+    83 000003BA 5F5F5F5F5F5F5F5F5F- <1>
+    83 000003C3 5F5F20547970655F5F- <1>
+    83 000003CC 5F5F0A0D00          <1>
+    84 000003D1 202D2D2D2D2D2D2D2D- <1> .s1:        db  " ----------------- ------------------- --------", 0x0A, 0x0D, 0
+    84 000003DA 2D2D2D2D2D2D2D2D2D- <1>
+    84 000003E3 202D2D2D2D2D2D2D2D- <1>
+    84 000003EC 2D2D2D2D2D2D2D2D2D- <1>
+    84 000003F5 2D2D202D2D2D2D2D2D- <1>
+    84 000003FE 2D2D0A0D00          <1>
+    85 00000403 203C6D6F72652E2E2E- <1> .s2:        db  " <more...>", 0
+    85 0000040C 3E00                <1>
+    86 0000040E 0D2020202020202020- <1> .s3:        db  0x0D, "          ", 0x0D, 0
+    86 00000417 20200D00            <1>
+    87                              <1> 
+    88 0000041B 00                  <1> ALIGN 4, db 0
+    89 0000041C 00<rept>            <1> .b0:    times E820_RECORD_SIZE db 0
+    90                              <1> 
+    91                              <1> put_mem_info:
+    92                              <1> 
+    93                              <1>             ;スタックフレームの構築
+    94 00000430 55                  <1>             push    bp                              ;BP +4 | メモリ情報が格納されたバッファアドレス
+    95 00000431 89E5                <1>             mov     bp, sp
+    96                              <1> 
+    97                              <1>             ;レジスタの保存
+    98 00000433 53                  <1>             push    bx
+    99 00000434 56                  <1>             push    si
+   100                              <1> 
+   101                              <1>             ;引数の取得
+   102 00000435 8B7604              <1>             mov     si, [bp + 4]
+   103                              <1> 
+   104                              <1>             ; Base(64bit)
+   105 00000438 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 6], .p2 + 0, 4, 16, 0x0100
+   105 00000440 [FF04]FF7406E8C4FD- <1>
+   105 00000448 83C40A              <1>
+   106 0000044B 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 4], .p2 + 4, 4, 16, 0x0100
+   106 00000453 [0305]FF7404E8B1FD- <1>
+   106 0000045B 83C40A              <1>
+   107 0000045E 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 2], .p3 + 0, 4, 16, 0x0100
+   107 00000466 [0805]FF7402E89EFD- <1>
+   107 0000046E 83C40A              <1>
+   108 00000471 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 0], .p3 + 4, 4, 16, 0x0100
+   108 00000479 [0C05]FF34E88CFD83- <1>
+   108 00000481 C40A                <1>
+   109                              <1> 
+   110                              <1>             ; Length(64bit)
+   111 00000483 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 14], .p4 + 0, 4, 16, 0x0100
+   111 0000048B [1105]FF740EE879FD- <1>
+   111 00000493 83C40A              <1>
+   112 00000496 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 12], .p4 + 4, 4, 16, 0x0100
+   112 0000049E [1505]FF740CE866FD- <1>
+   112 000004A6 83C40A              <1>
+   113 000004A9 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 10], .p5 + 0, 4, 16, 0x0100
+   113 000004B1 [1A05]FF740AE853FD- <1>
+   113 000004B9 83C40A              <1>
+   114 000004BC 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 8 ], .p5 + 4, 4, 16, 0x0100
+   114 000004C4 [1E05]FF7408E840FD- <1>
+   114 000004CC 83C40A              <1>
+   115                              <1> 
+   116                              <1>             ; Type(32bit)
+   117 000004CF 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 18], .p6 + 0, 4, 16, 0x0100
+   117 000004D7 [2305]FF7412E82DFD- <1>
+   117 000004DF 83C40A              <1>
+   118 000004E2 6800016A106A0468-   <1>             cdecl int_to_str, word [si + 16], .p6 + 4, 4, 16, 0x0100
+   118 000004EA [2705]FF7410E81AFD- <1>
+   118 000004F2 83C40A              <1>
+   119                              <1> 
+   120 000004F5 68[FE04]E8C7FB83C4- <1>             cdecl   puts, .s1                       ; //レコード情報を表示
+   120 000004FD 02                  <1>
+   121                              <1> 
+   122 000004FE 20                  <1> .s1:        db  " "
+   123 000004FF 5A5A5A5A5A5A5A5A5F  <1> .p2:        db  "ZZZZZZZZ_"
+   124 00000508 5A5A5A5A5A5A5A5A20  <1> .p3:        db  "ZZZZZZZZ "
+   125 00000511 5A5A5A5A5A5A5A5A5F  <1> .p4:        db  "ZZZZZZZZ_"
+   126 0000051A 5A5A5A5A5A5A5A5A20  <1> .p5:        db  "ZZZZZZZZ "
+   127 00000523 5A5A5A5A5A5A5A5A20- <1> .p6:        db  "ZZZZZZZZ ", 0
+   127 0000052C 00                  <1>
+   128                              <1> 
+   129 0000052D 8B5C10              <1>             mov     bx, [si + 16]                   ; //タイプを文字列で表示
+   130 00000530 83E307              <1>             and     bx, 0x07                        ; BX = Type(0~5)
+   131 00000533 D1E3                <1>             shl     bx, 1                           ; BX *= 2   //要素サイズに変換
+   132 00000535 81C3[9405]          <1>             add     bx, .t0                         ; BX += .t0 //テーブルの先頭アドレスを加算
+   133 00000539 FF37E884FB83C402    <1>             cdecl   puts, word [bx]
+   134                              <1> 
+   135 00000541 20286E6B6E6F776E29- <1> .s4:        db  " (nknown)", 0x0A, 0x0D, 0
+   135 0000054A 0A0D00              <1>
+   136 0000054D 2028757361626C6529- <1> .s5:        db  " (usable)", 0x0A, 0x0D, 0
+   136 00000556 0A0D00              <1>
+   137 00000559 202872657365727665- <1> .s6:        db  " (reserved)", 0x0A, 0x0D, 0
+   137 00000562 64290A0D00          <1>
+   138 00000567 202841435049206461- <1> .s7:        db  " (ACPI data)", 0x0A, 0x0D, 0
+   138 00000570 7461290A0D00        <1>
+   139 00000576 202841435049204E56- <1> .s8:        db  " (ACPI NVS)", 0x0A, 0x0D, 0
+   139 0000057F 53290A0D00          <1>
+   140 00000584 2028626164206D656D- <1> .s9:        db  " (bad memory)", 0x0A, 0x0D, 0
+   140 0000058D 6F7279290A0D00      <1>
+   141                              <1> 
+   142 00000594 [4105][4D05][5905]- <1> .t0:        dw  .s4, .s5, .s6, .s7, .s8, .s4, .s4
+   142 0000059A [6705][7605][4105]- <1>
+   142 000005A0 [4105]              <1>
+   143                              <1> 
+   144                              <1>             ;レジスタの復帰
+   145 000005A2 5E                  <1>             pop     si
+   146 000005A3 5B                  <1>             pop     bx
+   147                              <1> 
+   148                              <1>             ;スタックフレームの破棄
+   149 000005A4 89EC                <1>             mov     sp, bp
+   150 000005A6 5D                  <1>             pop     bp
+   151                              <1> 
+   152 000005A7 C3                  <1>             ret
     98                                  
     99                                  ;ブート処理の第2ステージ
    100                                  
    101                                  stage_2:
-   101          ******************       error: label `stage_2' changed during code generation [-w+error=label-redef-late]
    102                                  
    103                                          ;文字列を表示
-   104 00000380 68[0004]E83CFD83C4-             cdecl   puts, .s0
-   104 00000388 02                 
+   104 000005A8 68[2206]E814FB83C4-             cdecl   puts, .s0
+   104 000005B0 02                 
    105                                  
    106                                          ;ドライブ情報を取得
-   107 00000389 68[BA00]E8FDFE83C4-             cdecl   get_drive_params, BOOT          ;get_drive_params(DX, BOOT.CYLN);
-   107 00000391 02                 
-   108 00000392 83F800                          cmp     ax, 0                           ;if (0 == AX){
-   109 00000395 7512                    .10Q:   jne     .10E                            ;       puts(.e0);
-   109          ******************       error: label `stage_2.10Q' changed during code generation [-w+error=label-redef-late]
-   110 00000397 68[3704]E825FD83C4-     .10T:   cdecl   puts, .e0                       ;       reboot();
-   110          ******************       error: label `stage_2.10T' changed during code generation [-w+error=label-redef-late]
-   110 0000039F 02                 
-   111 000003A0 E83EFD                          call    reboot                          ; }
+   107 000005B1 68[BA00]E8D5FC83C4-             cdecl   get_drive_params, BOOT          ;get_drive_params(DX, BOOT.CYLN);
+   107 000005B9 02                 
+   108 000005BA 83F800                          cmp     ax, 0                           ;if (0 == AX){
+   109 000005BD 750C                    .10Q:   jne     .10E                            ;       puts(.e0);
+   110 000005BF 68[5906]E8FDFA83C4-     .10T:   cdecl   puts, .e0                       ;       reboot();
+   110 000005C7 02                 
+   111 000005C8 E816FB                          call    reboot                          ; }
    112                                  .10E:
-   112          ******************       error: label `stage_2.10E' changed during code generation [-w+error=label-redef-late]
    113                                  
    114                                          ;ドライブ情報を表示
-   115 000003A3 A1[BA00]                        mov     ax, [BOOT + drive.no]           ;AX = ブートドライブ
-   116 000003A6 6A046A106A0268-                 cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
-   116 000003AD [1804]50E859FE83C4-
-   116 000003B5 0A                 
-   117 000003B6 A1[BC00]                        mov     ax, [BOOT + drive.cyln]           ;
-   118 000003B9 6A046A106A0468-                 cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
-   118 000003C0 [2004]50E846FE83C4-
-   118 000003C8 0A                 
-   119 000003C9 A1[BE00]                        mov     ax, [BOOT + drive.head]           ;AX = ヘッド数
-   120 000003CC 6A046A106A0268-                 cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
-   120 000003D3 [2A04]50E833FE83C4-
-   120 000003DB 0A                 
-   121 000003DC A1[C000]                        mov     ax, [BOOT + drive.sect]           ;AX = トラック当たりのセクタ数
-   122 000003DF 6A046A106A0268-                 cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
-   122 000003E6 [3204]50E820FE83C4-
-   122 000003EE 0A                 
-   123 000003EF 68[0F04]E8CDFC83C4-             cdecl   puts, .s1
-   123 000003F7 02                 
+   115 000005CB A1[BA00]                        mov     ax, [BOOT + drive.no]           ;AX = ブートドライブ
+   116 000005CE 6A046A106A0268-                 cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
+   116 000005D5 [3A06]50E831FC83C4-
+   116 000005DD 0A                 
+   117 000005DE A1[BC00]                        mov     ax, [BOOT + drive.cyln]           ;
+   118 000005E1 6A046A106A0468-                 cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
+   118 000005E8 [4206]50E81EFC83C4-
+   118 000005F0 0A                 
+   119 000005F1 A1[BE00]                        mov     ax, [BOOT + drive.head]           ;AX = ヘッド数
+   120 000005F4 6A046A106A0268-                 cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
+   120 000005FB [4C06]50E80BFC83C4-
+   120 00000603 0A                 
+   121 00000604 A1[C000]                        mov     ax, [BOOT + drive.sect]           ;AX = トラック当たりのセクタ数
+   122 00000607 6A046A106A0268-                 cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
+   122 0000060E [5406]50E8F8FB83C4-
+   122 00000616 0A                 
+   123 00000617 68[3106]E8A5FA83C4-             cdecl   puts, .s1
+   123 0000061F 02                 
    124                                  
    125                                  
    126                                          ;処理の終了
    127                                  
-   128 000003F8 EB58                            jmp     stage_3
+   128 00000620 EB52                            jmp     stage_3
    129                                  
    130                                          ;データ
    131                                  
-   132 000003FA 326E64207374616765-     .s0     db      "2nd stage...", 0x0A, 0x0D, 0
-   132          ******************       error: label `stage_2.s0' changed during code generation [-w+error=label-redef-late]
-   132 00000403 2E2E2E0A0D00       
+   132 00000622 326E64207374616765-     .s0     db      "2nd stage...", 0x0A, 0x0D, 0
+   132 0000062B 2E2E2E0A0D00       
    133                                  
-   134 00000409 2044726976653A3078      .s1     db      " Drive:0x"
-   134          ******************       error: label `stage_2.s1' changed during code generation [-w+error=label-redef-late]
-   135 00000412 20202C20433A3078        .p1     db      "  , C:0x"
-   135          ******************       error: label `stage_2.p1' changed during code generation [-w+error=label-redef-late]
-   136 0000041A 202020202C20483A30-     .p2     db      "    , H:0x"
-   136          ******************       error: label `stage_2.p2' changed during code generation [-w+error=label-redef-late]
-   136 00000423 78                 
-   137 00000424 20202C20533A3078        .p3     db      "  , S:0x"
-   137          ******************       error: label `stage_2.p3' changed during code generation [-w+error=label-redef-late]
-   138 0000042C 20200A0D00              .p4     db      "  ", 0x0A, 0x0D, 0
-   138          ******************       error: label `stage_2.p4' changed during code generation [-w+error=label-redef-late]
+   134 00000631 2044726976653A3078      .s1     db      " Drive:0x"
+   135 0000063A 20202C20433A3078        .p1     db      "  , C:0x"
+   136 00000642 202020202C20483A30-     .p2     db      "    , H:0x"
+   136 0000064B 78                 
+   137 0000064C 20202C20533A3078        .p3     db      "  , S:0x"
+   138 00000654 20200A0D00              .p4     db      "  ", 0x0A, 0x0D, 0
    139                                  
-   140 00000431 43616E277420676574-     .e0     db      "Can't get drive Parameter.", 0
-   140          ******************       error: label `stage_2.e0' changed during code generation [-w+error=label-redef-late]
-   140 0000043A 206472697665205061-
-   140 00000443 72616D657465722E00 
+   140 00000659 43616E277420676574-     .e0     db      "Can't get drive Parameter.", 0
+   140 00000662 206472697665205061-
+   140 0000066B 72616D657465722E00 
    141                                  
    142                                  stage_3:
-   142          ******************       error: label `stage_3' changed during code generation [-w+error=label-redef-late]
    143                                  
    144                                          ;文字列を表示
-   145 0000044C 68[D504]E870FC83C4-             cdecl   puts, .s0
-   145 00000454 02                 
+   145 00000674 68[F106]E848FA83C4-             cdecl   puts, .s0
+   145 0000067C 02                 
    146                                  
    147                                          ;プロテクトモードで使用するフォントは
    148                                          ;BIOSに内蔵されたものを流用する
    149                                  
-   150 00000455 68[0002]E872FE83C4-             cdecl   get_font_adr, FONT
-   150 0000045D 02                 
+   150 0000067D 68[0002]E84AFC83C4-             cdecl   get_font_adr, FONT
+   150 00000685 02                 
    151                                  
    152                                          ;フォントアドレスの表示
-   153 0000045E 6A046A106A0468-                 cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
-   153 00000465 [F204]FF36[0002]E8-
-   153 0000046C 9EFD83C40A         
-   154 00000471 6A046A106A0468-                 cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
-   154 00000478 [F704]FF36[0202]E8-
-   154 0000047F 8BFD83C40A         
-   155 00000484 68[E404]E838FC83C4-             cdecl   puts, .s1
-   155 0000048C 02                 
+   153 00000686 6A046A106A0468-                 cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
+   153 0000068D [0E07]FF36[0002]E8-
+   153 00000694 76FB83C40A         
+   154 00000699 6A046A106A0468-                 cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
+   154 000006A0 [1307]FF36[0202]E8-
+   154 000006A7 63FB83C40A         
+   155 000006AC 68[0007]E810FA83C4-             cdecl   puts, .s1
+   155 000006B4 02                 
    156                                  
    157                                          ;メモリ情報の取得と表示
-   158 0000048D 68[0402]E85AFE83C4-             cdecl   get_mem_info, ACPI_DATA                 ;get_mem_info(&ACPI_DATA)
-   158 00000495 02                 
+   158 000006B5 E835FC                          cdecl   get_mem_info              ;get_mem_info()
    159                                  
-   160 00000496 66A1[0402]                      mov     eax, [ACPI_DATA.adr]
-   161 0000049A 6683F800                        cmp     eax, 0
-   162 0000049E 7433                            je      .10E
+   160 000006B8 66A1[0402]                      mov     eax, [ACPI_DATA.adr]
+   161 000006BC 6683F800                        cmp     eax, 0
+   162 000006C0 742D                            je      .10E
    163                                  
-   164 000004A0 6A046A106A0468-                 cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ;下位アドレス
-   164 000004A7 [1105]50E85FFD83C4-
-   164 000004AF 0A                 
-   165 000004B0 66C1E810                        shr     eax, 16                                 ;EAX >>= 16
-   166 000004B4 6A046A106A0468-                 cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ;上位アドレス
-   166 000004BB [0D05]50E84BFD83C4-
-   166 000004C3 0A                 
+   164 000006C2 6A046A106A0468-                 cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ;下位アドレス
+   164 000006C9 [2D07]50E83DFB83C4-
+   164 000006D1 0A                 
+   165 000006D2 66C1E810                        shr     eax, 16                                 ;EAX >>= 16
+   166 000006D6 6A046A106A0468-                 cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ;上位アドレス
+   166 000006DD [2907]50E829FB83C4-
+   166 000006E5 0A                 
    167                                  
-   168 000004C4 68[0105]E8F8FB83C4-             cdecl   puts, .s2
-   168 000004CC 02                 
-   169                                  .10E
-   169          ******************       warning: label alone on a line without a colon might be in error [-w+orphan-labels]
-   169          ******************       error: label `stage_3.10E' changed during code generation [-w+error=label-redef-late]
+   168 000006E6 68[1D07]E8D6F983C4-             cdecl   puts, .s2
+   168 000006EE 02                 
+   169                                  .10E:
    170                                  
    171                                          ;処理の終了
-   172 000004CD EBFE                            jmp     $
+   172 000006EF EBFE                            jmp     $
    173                                  
    174                                          ;データ
-   175 000004CF 337264207374616765-     .s0     db      "3rd stage...", 0x0A, 0x0D, 0
-   175          ******************       error: label `stage_3.s0' changed during code generation [-w+error=label-redef-late]
-   175 000004D8 2E2E2E0A0D00       
+   175 000006F1 337264207374616765-     .s0     db      "3rd stage...", 0x0A, 0x0D, 0
+   175 000006FA 2E2E2E0A0D00       
    176                                  
-   177 000004DE 20466F6E7420416464-     .s1     db      " Font Address="
-   177          ******************       error: label `stage_3.s1' changed during code generation [-w+error=label-redef-late]
-   177 000004E7 726573733D         
-   178 000004EC 5A5A5A5A3A              .p1     db      "ZZZZ:"
-   178          ******************       error: label `stage_3.p1' changed during code generation [-w+error=label-redef-late]
-   179 000004F1 5A5A5A5A0A0D00          .p2     db      "ZZZZ", 0x0A, 0x0D, 0
-   179          ******************       error: label `stage_3.p2' changed during code generation [-w+error=label-redef-late]
-   180 000004F8 0A0D00                          db      0x0A, 0x0D, 0
+   177 00000700 20466F6E7420416464-     .s1     db      " Font Address="
+   177 00000709 726573733D         
+   178 0000070E 5A5A5A5A3A              .p1     db      "ZZZZ:"
+   179 00000713 5A5A5A5A0A0D00          .p2     db      "ZZZZ", 0x0A, 0x0D, 0
+   180 0000071A 0A0D00                          db      0x0A, 0x0D, 0
    181                                  
-   182 000004FB 204143504920646174-     .s2     db      " ACPI data ="
-   182          ******************       error: label `stage_3.s2' changed during code generation [-w+error=label-redef-late]
-   182 00000504 61203D             
-   183 00000507 5A5A5A5A                .p3     db      "ZZZZ"
-   183          ******************       error: label `stage_3.p3' changed during code generation [-w+error=label-redef-late]
-   184 0000050B 585858580A0D00          .p4     db      "XXXX", 0x0A, 0x0D, 0
-   184          ******************       error: label `stage_3.p4' changed during code generation [-w+error=label-redef-late]
+   182 0000071D 204143504920646174-     .s2     db      " ACPI data ="
+   182 00000726 61203D             
+   183 00000729 5A5A5A5A                .p3     db      "ZZZZ"
+   184 0000072D 585858580A0D00          .p4     db      "XXXX", 0x0A, 0x0D, 0
    185                                  
    186                                  ;パディング
    187                                  
-   188 00000512 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
+   188 00000734 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
