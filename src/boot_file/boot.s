@@ -83,8 +83,14 @@ BOOT:
         times   510 - ($ - $$) db 0x00
         db 0x55, 0xAA
 
+;リアルモード時に取得した情報
+FONT:                                           ;フォント
+.seg:   dw 0
+.off:   dw 0
+
 %include    "../modules/real/int_to_str.s"
 %include    "../modules/real/get_drive_params.s"
+%include    "../modules/real/get_font_adr.s"
 
 ;ブート処理の第2ステージ
 
@@ -115,7 +121,7 @@ stage_2:
 
         ;処理の終了
 
-        jmp     $
+        jmp     stage_3
 
         ;データ
 
@@ -128,6 +134,33 @@ stage_2:
 .p4     db      "  ", 0x0A, 0x0D, 0
 
 .e0     db      "Can't get drive Parameter.", 0
+
+stage_3:
+
+        ;文字列を表示
+        cdecl   puts, .s0
+
+        ;プロテクトモードで使用するフォントは
+        ;BIOSに内蔵されたものを流用する
+
+        cdecl   get_font_adr, FONT
+
+        ;フォントアドレスの表示
+        cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
+        cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
+        cdecl   puts, .s1
+
+        ;処理の終了
+
+        jmp     $
+
+        ;データ
+.s0     db      "3rd stage...", 0x0A, 0x0D, 0
+
+.s1     db      " Font Address="
+.p1     db      "ZZZZ:"
+.p2     db      "ZZZZ", 0x0A, 0x0D, 0
+        db      0x0A, 0x0D, 0
 
 ;パディング
 
