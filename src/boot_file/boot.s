@@ -87,10 +87,14 @@ BOOT:
 FONT:                                           ;フォント
 .seg:   dw 0
 .off:   dw 0
+ACPI_DATA:
+.adr:   dd 0                                    ; ACPI base address
+.len:   dd 0                                    ;      data length
 
 %include    "../modules/real/int_to_str.s"
 %include    "../modules/real/get_drive_params.s"
 %include    "../modules/real/get_font_adr.s"
+%include    "../modules/real/get_mem_info.s"
 
 ;ブート処理の第2ステージ
 
@@ -150,8 +154,21 @@ stage_3:
         cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
         cdecl   puts, .s1
 
-        ;処理の終了
+        ;メモリ情報の取得と表示
+        cdecl   get_mem_info, ACPI_DATA                 ;get_mem_info(&ACPI_DATA)
 
+        mov     eax, [ACPI_DATA.adr]
+        cmp     eax, 0
+        je      .10E
+
+        cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ;下位アドレス
+        shr     eax, 16                                 ;EAX >>= 16
+        cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ;上位アドレス
+
+        cdecl   puts, .s2
+.10E
+
+        ;処理の終了
         jmp     $
 
         ;データ
@@ -161,6 +178,10 @@ stage_3:
 .p1     db      "ZZZZ:"
 .p2     db      "ZZZZ", 0x0A, 0x0D, 0
         db      0x0A, 0x0D, 0
+
+.s2     db      " ACPI data ="
+.p3     db      "ZZZZ"
+.p4     db      "XXXX", 0x0A, 0x0D, 0
 
 ;パディング
 
