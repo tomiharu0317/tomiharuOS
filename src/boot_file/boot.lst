@@ -6,6 +6,8 @@
      3                              <1>         BOOT_SIZE       equ     (1024 * 8)                      ;ブートコードサイズ
      4                              <1>         SECT_SIZE       equ     (512)                           ;セクタサイズ
      5                              <1>         BOOT_SECT       equ     (BOOT_SIZE / SECT_SIZE)         ;ブートプログラムのセクタ数
+     6                              <1> 
+     7                              <1>         E820_RECORD_SIZE        equ     20
      4                                  %include    "../include/macro.s"
      1                              <1> %macro  cdecl 1-*.nolist
      2                              <1> 
@@ -84,7 +86,7 @@
     54                                  
     55                                          ;次のステージへ移行
     56                                  
-    57 00000096 E94C02                          jmp     stage_2                     ;ブート処理の第2ステージへ
+    57 00000096 E9ED02                          jmp     stage_2                     ;ブート処理の第2ステージへ
     58                                  
     59                                          ;データ
     60                                  
@@ -293,14 +295,17 @@
     87                                  FONT:                                           ;フォント
     88 00000200 0000                    .seg:   dw 0
     89 00000202 0000                    .off:   dw 0
-    90                                  
-    91                                  %include    "../modules/real/int_to_str.s"
+    90                                  ACPI_DATA:
+    91 00000204 00000000                .adr:   dd 0                                    ; ACPI base address
+    92 00000208 00000000                .len:   dd 0                                    ;      data length
+    93                                  
+    94                                  %include    "../modules/real/int_to_str.s"
      1                              <1> int_to_str:
      2                              <1> 
      3                              <1>         ;スタックフレームの構築
      4                              <1> 
-     5 00000204 55                  <1>         push    bp
-     6 00000205 89E5                <1>         mov     bp, sp                          ;  +12|フラグ
+     5 0000020C 55                  <1>         push    bp
+     6 0000020D 89E5                <1>         mov     bp, sp                          ;  +12|フラグ
      7                              <1>                                                 ;  +10|基数
      8                              <1>                                                 ;  + 8|保存先バッファサイズ
      9                              <1>                                                 ;  + 6|保存先バッファアドレス
@@ -309,299 +314,425 @@
     12                              <1>                                                 ;BP+ 0|BP
     13                              <1>         ;レジスタの保存
     14                              <1> 
-    15 00000207 50                  <1>         push    ax
-    16 00000208 53                  <1>         push    bx
-    17 00000209 51                  <1>         push    cx
-    18 0000020A 52                  <1>         push    dx
-    19 0000020B 56                  <1>         push    si
-    20 0000020C 57                  <1>         push    di
+    15 0000020F 50                  <1>         push    ax
+    16 00000210 53                  <1>         push    bx
+    17 00000211 51                  <1>         push    cx
+    18 00000212 52                  <1>         push    dx
+    19 00000213 56                  <1>         push    si
+    20 00000214 57                  <1>         push    di
     21                              <1> 
     22                              <1>         ;引数の取得
     23                              <1> 
-    24 0000020D 8B4604              <1>         mov     ax, [bp + 4]                    ;val = 数値
-    25 00000210 8B7606              <1>         mov     si, [bp + 6]                    ;dest= バッファアドレス
-    26 00000213 8B4E08              <1>         mov     cx, [bp + 8]                    ;size= バッファサイズ
+    24 00000215 8B4604              <1>         mov     ax, [bp + 4]                    ;val = 数値
+    25 00000218 8B7606              <1>         mov     si, [bp + 6]                    ;dest= バッファアドレス
+    26 0000021B 8B4E08              <1>         mov     cx, [bp + 8]                    ;size= バッファサイズ
     27                              <1> 
-    28 00000216 89F7                <1>         mov     di, si                          ;バッファの最後尾
-    29 00000218 01CF                <1>         add     di, cx                          ;dest = &dest[size - 1]
-    30 0000021A 4F                  <1>         dec     di
+    28 0000021E 89F7                <1>         mov     di, si                          ;バッファの最後尾
+    29 00000220 01CF                <1>         add     di, cx                          ;dest = &dest[size - 1]
+    30 00000222 4F                  <1>         dec     di
     31                              <1> 
-    32 0000021B 8B5E0C              <1>         mov     bx, word [bp + 12]              ;flags = フラグ
+    32 00000223 8B5E0C              <1>         mov     bx, word [bp + 12]              ;flags = フラグ
     33                              <1>                                                 ;B2: 空白をゼロで埋める B1:+/-記号を付加する B0:値を符号付き変数として扱う
     34                              <1> 
     35                              <1>         ;符号付き判定
     36                              <1> 
-    37 0000021E F7C30100            <1>         test    bx, 0b0001                      ; if (flags & 0x01) //符号付きならZF = 0
-    38 00000222 7408                <1> .10Q    je      .10E                            ; {                 //符号なしならZF = 1だからjmp
-    39 00000224 83F800              <1>         cmp     ax, 0                           ;   if (val < 0)    //CF = 1, ZF = 0
-    40 00000227 7D03                <1> .12Q    jge     .12E                            ;   {               //val >= 0 なら必要ないのでjmp
-    41 00000229 83CB02              <1>         or      bx, 0b0010                      ;       flags |= 2; //B1をセット
+    37 00000226 F7C30100            <1>         test    bx, 0b0001                      ; if (flags & 0x01) //符号付きならZF = 0
+    38 0000022A 7408                <1> .10Q    je      .10E                            ; {                 //符号なしならZF = 1だからjmp
+    39 0000022C 83F800              <1>         cmp     ax, 0                           ;   if (val < 0)    //CF = 1, ZF = 0
+    40 0000022F 7D03                <1> .12Q    jge     .12E                            ;   {               //val >= 0 なら必要ないのでjmp
+    41 00000231 83CB02              <1>         or      bx, 0b0010                      ;       flags |= 2; //B1をセット
     42                              <1>                                                 ;}}
     43                              <1> .12E:
     44                              <1> .10E:
     45                              <1> 
     46                              <1>         ;符号出力判定
     47                              <1> 
-    48 0000022C F7C30200            <1>         test    bx, 0b0010
-    49 00000230 7410                <1> .20Q    je      .20E
-    50 00000232 83F800              <1>         cmp     ax, 0
-    51 00000235 7D07                <1> .22Q    jge     .22F
-    52 00000237 F7D8                <1>         neg     ax                              ;符号反転
-    53 00000239 C6042D              <1>         mov     [si], byte '-'                  ;符号表示
-    54 0000023C EB03                <1>         jmp     .22E
+    48 00000234 F7C30200            <1>         test    bx, 0b0010
+    49 00000238 7410                <1> .20Q    je      .20E
+    50 0000023A 83F800              <1>         cmp     ax, 0
+    51 0000023D 7D07                <1> .22Q    jge     .22F
+    52 0000023F F7D8                <1>         neg     ax                              ;符号反転
+    53 00000241 C6042D              <1>         mov     [si], byte '-'                  ;符号表示
+    54 00000244 EB03                <1>         jmp     .22E
     55                              <1> .22F:
-    56 0000023E C6042B              <1>         mov     [si], byte '+'
+    56 00000246 C6042B              <1>         mov     [si], byte '+'
     57                              <1> .22E:
-    58 00000241 49                  <1>         dec     cx                              ;残りバッファサイズの減算 -> ?
+    58 00000249 49                  <1>         dec     cx                              ;残りバッファサイズの減算 -> ?
     59                              <1> .20E:
     60                              <1> 
     61                              <1>         ;ASCII変換
     62                              <1> 
-    63 00000242 8B5E0A              <1>         mov     bx, [bp + 10]                   ;BX = 基数
+    63 0000024A 8B5E0A              <1>         mov     bx, [bp + 10]                   ;BX = 基数
     64                              <1> 
     65                              <1> .30L:                                           ;do{
-    66 00000245 BA0000              <1>         mov     dx, 0
-    67 00000248 F7F3                <1>         div     bx                              ;   DX = DX:AX % BX;
+    66 0000024D BA0000              <1>         mov     dx, 0
+    67 00000250 F7F3                <1>         div     bx                              ;   DX = DX:AX % BX;
     68                              <1>                                                 ;   AX = DX:AX / BX;
     69                              <1> 
-    70 0000024A 89D6                <1>         mov     si, dx                          ;   //変換テーブル参照
-    71 0000024C 8A94[7402]          <1>         mov     dl, byte [.ascii + si]          ;   DL = ASCII[DX];
+    70 00000252 89D6                <1>         mov     si, dx                          ;   //変換テーブル参照
+    71 00000254 8A94[7C02]          <1>         mov     dl, byte [.ascii + si]          ;   DL = ASCII[DX];
     72                              <1> 
-    73 00000250 8815                <1>         mov     [di], dl                        ;   *dest = DL;
-    74 00000252 4F                  <1>         dec     di                              ;   dest--;
+    73 00000258 8815                <1>         mov     [di], dl                        ;   *dest = DL;
+    74 0000025A 4F                  <1>         dec     di                              ;   dest--;
     75                              <1> 
-    76 00000253 83F800              <1>         cmp     ax, 0
-    77 00000256 E0ED                <1>         loopnz  .30L                            ;} while(AX);
+    76 0000025B 83F800              <1>         cmp     ax, 0
+    77 0000025E E0ED                <1>         loopnz  .30L                            ;} while(AX);
     78                              <1> 
     79                              <1> .30E:
     80                              <1> 
     81                              <1>         ;空欄をゼロ埋め/空白埋め
     82                              <1> 
-    83 00000258 83F900              <1>         cmp     cx, 0                           ;if (size)
-    84 0000025B 740D                <1> .40Q:   je      .40E                            ;{
-    85 0000025D B020                <1>         mov     al, ' '                         ;   AL = ' '; //空白埋め
-    86 0000025F 837E0C04            <1>         cmp     [bp + 12], word 0b0100          ;   if (flags & 0x04)
-    87 00000263 7502                <1> .42Q:   jne     .42E                            ;   {
-    88 00000265 B030                <1>         mov     al, '0'                         ;       AL = '0'; //ゼロ埋め
+    83 00000260 83F900              <1>         cmp     cx, 0                           ;if (size)
+    84 00000263 740D                <1> .40Q:   je      .40E                            ;{
+    85 00000265 B020                <1>         mov     al, ' '                         ;   AL = ' '; //空白埋め
+    86 00000267 837E0C04            <1>         cmp     [bp + 12], word 0b0100          ;   if (flags & 0x04)
+    87 0000026B 7502                <1> .42Q:   jne     .42E                            ;   {
+    88 0000026D B030                <1>         mov     al, '0'                         ;       AL = '0'; //ゼロ埋め
     89                              <1> .42E:                                           ;   }
-    90 00000267 FD                  <1>         std                                     ;   // DF = 1(減算)
-    91 00000268 F3AA                <1>         rep stosb                               ;   while (--cx) * DI-- = ' ';
+    90 0000026F FD                  <1>         std                                     ;   // DF = 1(減算)
+    91 00000270 F3AA                <1>         rep stosb                               ;   while (--cx) * DI-- = ' ';
     92                              <1> .40E:                                           ;}
     93                              <1> 
     94                              <1>         ;レジスタの復帰
     95                              <1> 
-    96 0000026A 5F                  <1>         pop     di
-    97 0000026B 5E                  <1>         pop     si
-    98 0000026C 5A                  <1>         pop     dx
-    99 0000026D 59                  <1>         pop     cx
-   100 0000026E 5B                  <1>         pop     bx
-   101 0000026F 58                  <1>         pop     ax
+    96 00000272 5F                  <1>         pop     di
+    97 00000273 5E                  <1>         pop     si
+    98 00000274 5A                  <1>         pop     dx
+    99 00000275 59                  <1>         pop     cx
+   100 00000276 5B                  <1>         pop     bx
+   101 00000277 58                  <1>         pop     ax
    102                              <1> 
    103                              <1>         ;スタックフレームの破棄
    104                              <1> 
-   105 00000270 89EC                <1>         mov     sp, bp
-   106 00000272 5D                  <1>         pop     bp
+   105 00000278 89EC                <1>         mov     sp, bp
+   106 0000027A 5D                  <1>         pop     bp
    107                              <1> 
-   108 00000273 C3                  <1>         ret
+   108 0000027B C3                  <1>         ret
    109                              <1> 
    110                              <1> 
-   111 00000274 303132333435363738- <1> .ascii  db      "0123456789ABCDEF"              ;変換テーブル
-   111 0000027D 39414243444546      <1>
-    92                                  %include    "../modules/real/get_drive_params.s"
+   111 0000027C 303132333435363738- <1> .ascii  db      "0123456789ABCDEF"              ;変換テーブル
+   111 00000285 39414243444546      <1>
+    95                                  %include    "../modules/real/get_drive_params.s"
      1                              <1> get_drive_params:
      2                              <1> 
      3                              <1>             ;スタックフレームの構築
-     4 00000284 55                  <1>             push    bp                                  ;BP +4 | drive構造体のアドレス
-     5 00000285 89E5                <1>             mov     bp, sp
+     4 0000028C 55                  <1>             push    bp                                  ;BP +4 | drive構造体のアドレス
+     5 0000028D 89E5                <1>             mov     bp, sp
      6                              <1> 
      7                              <1>             ;レジスタの保存
      8                              <1> 
-     9 00000287 53                  <1>             push    bx
-    10 00000288 51                  <1>             push    cx
-    11 00000289 06                  <1>             push    es
-    12 0000028A 56                  <1>             push    si
-    13 0000028B 57                  <1>             push    di
+     9 0000028F 53                  <1>             push    bx
+    10 00000290 51                  <1>             push    cx
+    11 00000291 06                  <1>             push    es
+    12 00000292 56                  <1>             push    si
+    13 00000293 57                  <1>             push    di
     14                              <1> 
     15                              <1>             ;処理
-    16 0000028C 8B7604              <1>             mov     si, [bp + 4]
+    16 00000294 8B7604              <1>             mov     si, [bp + 4]
     17                              <1> 
-    18 0000028F B80000              <1>             mov     ax, 0                               ;Disk Base Table Pointer の初期化
-    19 00000292 8EC0                <1>             mov     es, ax
-    20 00000294 89C7                <1>             mov     di, ax                              ;int 0x13命令時ES:DIにディスクベーステーブルのアドレスが設定される
+    18 00000297 B80000              <1>             mov     ax, 0                               ;Disk Base Table Pointer の初期化
+    19 0000029A 8EC0                <1>             mov     es, ax
+    20 0000029C 89C7                <1>             mov     di, ax                              ;int 0x13命令時ES:DIにディスクベーステーブルのアドレスが設定される
     21                              <1> 
-    22 00000296 B408                <1>             mov     ah, 8
-    23 00000298 8A14                <1>             mov     dl, [si + drive.no]                 ;DL = ドライブ番号
-    24 0000029A CD13                <1>             int     0x13
+    22 0000029E B408                <1>             mov     ah, 8
+    23 000002A0 8A14                <1>             mov     dl, [si + drive.no]                 ;DL = ドライブ番号
+    24 000002A2 CD13                <1>             int     0x13
     25                              <1> 
-    26 0000029C 721B                <1> .10Q:       jc      .10F                                ; if (0 == CF) // 0:成功, 1:失敗
+    26 000002A4 721B                <1> .10Q:       jc      .10F                                ; if (0 == CF) // 0:成功, 1:失敗
     27                              <1> .10T:                                                   ; {
-    28 0000029E 88C8                <1>             mov     al, cl                              ;   AX = セクタ数;
-    29 000002A0 83E03F              <1>             and     ax, 0x3F                            ;   // 下位6ビットのみ有効
+    28 000002A6 88C8                <1>             mov     al, cl                              ;   AX = セクタ数;
+    29 000002A8 83E03F              <1>             and     ax, 0x3F                            ;   // 下位6ビットのみ有効
     30                              <1> 
-    31 000002A3 C0E906              <1>             shr     cl, 6                               ;   CX = シリンダ数;
-    32 000002A6 C1C908              <1>             ror     cx, 8
-    33 000002A9 41                  <1>             inc     cx                                  ;   //シリンダ番号は0始まりなので，最大シリンダ数を得るために1加算
+    31 000002AB C0E906              <1>             shr     cl, 6                               ;   CX = シリンダ数;
+    32 000002AE C1C908              <1>             ror     cx, 8
+    33 000002B1 41                  <1>             inc     cx                                  ;   //シリンダ番号は0始まりなので，最大シリンダ数を得るために1加算
     34                              <1> 
-    35 000002AA 0FB6DE              <1>             movzx   bx, dh                              ;   BX = ヘッド数(1ベース) //ゼロ拡張(2byte)
-    36 000002AD 43                  <1>             inc     bx                                  ;   //ヘッド番号も同様
+    35 000002B2 0FB6DE              <1>             movzx   bx, dh                              ;   BX = ヘッド数(1ベース) //ゼロ拡張(2byte)
+    36 000002B5 43                  <1>             inc     bx                                  ;   //ヘッド番号も同様
     37                              <1> 
-    38 000002AE 894C02              <1>             mov     [si + drive.cyln], cx               ;   //オフセットアドレスに格納
-    39 000002B1 895C04              <1>             mov     [si + drive.head], bx
-    40 000002B4 894406              <1>             mov     [si + drive.sect], ax
+    38 000002B6 894C02              <1>             mov     [si + drive.cyln], cx               ;   //オフセットアドレスに格納
+    39 000002B9 895C04              <1>             mov     [si + drive.head], bx
+    40 000002BC 894406              <1>             mov     [si + drive.sect], ax
     41                              <1> 
-    42 000002B7 EB03                <1>             jmp     .10E                                ; }
+    42 000002BF EB03                <1>             jmp     .10E                                ; }
     43                              <1> .10F:                                                   ; else
-    44 000002B9 B80000              <1>             mov     ax, 0                               ; {
+    44 000002C1 B80000              <1>             mov     ax, 0                               ; {
     45                              <1> .10E:                                                   ;   AX = 0; //失敗
     46                              <1>                                                         ; }
     47                              <1> 
     48                              <1>             ;レジスタの復帰
-    49 000002BC 5F                  <1>             pop     di
-    50 000002BD 5E                  <1>             pop     si
-    51 000002BE 07                  <1>             pop     es
-    52 000002BF 59                  <1>             pop     cx
-    53 000002C0 5B                  <1>             pop     bx
+    49 000002C4 5F                  <1>             pop     di
+    50 000002C5 5E                  <1>             pop     si
+    51 000002C6 07                  <1>             pop     es
+    52 000002C7 59                  <1>             pop     cx
+    53 000002C8 5B                  <1>             pop     bx
     54                              <1> 
     55                              <1>             ;スタックフレームの破棄
-    56 000002C1 89EC                <1>             mov     sp, bp
-    57 000002C3 5D                  <1>             pop     bp
+    56 000002C9 89EC                <1>             mov     sp, bp
+    57 000002CB 5D                  <1>             pop     bp
     58                              <1> 
-    59 000002C4 C3                  <1>             ret
-    93                                  %include    "../modules/real/get_font_adr.s"
+    59 000002CC C3                  <1>             ret
+    96                                  %include    "../modules/real/get_font_adr.s"
      1                              <1> get_font_adr:
      2                              <1> 
      3                              <1>             ;スタックフレームの構築
-     4 000002C5 55                  <1>             push    bp                                          ; BP+4 | フォントアドレスの格納位置
-     5 000002C6 89E5                <1>             mov     bp, sp
+     4 000002CD 55                  <1>             push    bp                                          ; BP+4 | フォントアドレスの格納位置
+     5 000002CE 89E5                <1>             mov     bp, sp
      6                              <1> 
      7                              <1>             ;レジスタの保存
      8                              <1> 
-     9 000002C8 50                  <1>             push    ax
-    10 000002C9 53                  <1>             push    bx
-    11 000002CA 56                  <1>             push    si
-    12 000002CB 06                  <1>             push    es
-    13 000002CC 55                  <1>             push    bp
+     9 000002D0 50                  <1>             push    ax
+    10 000002D1 53                  <1>             push    bx
+    11 000002D2 56                  <1>             push    si
+    12 000002D3 06                  <1>             push    es
+    13 000002D4 55                  <1>             push    bp
     14                              <1> 
     15                              <1>             ;引数の取得
-    16 000002CD 8B7604              <1>             mov     si, [bp + 4]
+    16 000002D5 8B7604              <1>             mov     si, [bp + 4]
     17                              <1> 
     18                              <1>             ;フォントアドレスの取得
-    19 000002D0 B83011              <1>             mov     ax, 0x1130
-    20 000002D3 B706                <1>             mov     bh, 0x06                                    ;8 x 16 font(vga/mcga)
-    21 000002D5 CD10                <1>             int     0x10                                        ;ES:BP = Font Address
+    19 000002D8 B83011              <1>             mov     ax, 0x1130
+    20 000002DB B706                <1>             mov     bh, 0x06                                    ;8 x 16 font(vga/mcga)
+    21 000002DD CD10                <1>             int     0x10                                        ;ES:BP = Font Address
     22                              <1> 
     23                              <1>             ;フォントアドレスを保存
-    24 000002D7 8C04                <1>             mov     [si + 0], es                                ;dest[0] = セグメント
-    25 000002D9 895C02              <1>             mov     [si + 2], bx                                ;dest[1] = オフセット
+    24 000002DF 8C04                <1>             mov     [si + 0], es                                ;dest[0] = セグメント
+    25 000002E1 895C02              <1>             mov     [si + 2], bx                                ;dest[1] = オフセット
     26                              <1> 
     27                              <1>             ;レジスタの復帰
-    28 000002DC 5D                  <1>             pop     bp
-    29 000002DD 07                  <1>             pop     es
-    30 000002DE 5E                  <1>             pop     si
-    31 000002DF 5B                  <1>             pop     bx
-    32 000002E0 58                  <1>             pop     ax
+    28 000002E4 5D                  <1>             pop     bp
+    29 000002E5 07                  <1>             pop     es
+    30 000002E6 5E                  <1>             pop     si
+    31 000002E7 5B                  <1>             pop     bx
+    32 000002E8 58                  <1>             pop     ax
     33                              <1> 
     34                              <1>             ;スタックフレームの破棄
-    35 000002E1 89EC                <1>             mov     sp, bp
-    36 000002E3 5D                  <1>             pop     bp
+    35 000002E9 89EC                <1>             mov     sp, bp
+    36 000002EB 5D                  <1>             pop     bp
     37                              <1> 
-    38 000002E4 C3                  <1>             ret
-    94                                  
-    95                                  ;ブート処理の第2ステージ
-    96                                  
-    97                                  stage_2:
+    38 000002EC C3                  <1>             ret
+    97                                  %include    "../modules/real/get_mem_info.s"
+     1                              <1> get_mem_info:
+     2                              <1> 
+     3                              <1>             ;レジスタの保存
+     4 000002ED 6650                <1>             push    eax
+     5 000002EF 6653                <1>             push    ebx
+     6 000002F1 6651                <1>             push    ecx
+     7 000002F3 6652                <1>             push    edx
+     8 000002F5 56                  <1>             push    si
+     9 000002F6 57                  <1>             push    di
+    10 000002F7 55                  <1>             push    bp
+    11                              <1> 
+    12 000002F8 BD0000              <1>             mov     bp, 0                           ; lines = 0; //行数
+    13 000002FB 66BB00000000        <1>             mov     ebx, 0                          ; index = 0; //初期化
+    14                              <1> .10L:                                               ; do
+    15                              <1>                                                     ; {
+    16 00000301 66B820E80000        <1>             mov     eax, 0x0000E820                 ;   EAX  = 0xE820;
+    17 00000307 66B914000000        <1>             mov     ecx, E820_RECORD_SIZE           ;   ECX  = 要求バイト数;
+    18 0000030D 66BA50414D53        <1>             mov     edx, 'PAMS'                     ;   EDX  = 'SMAP' //固定値
+    19                              <1>             mov     di, .b0                         ;   ES:DI= 書き込み先
+    19          ******************  <1>  error: symbol `get_mem_info.b0' undefined
+    20 00000313 CD15                <1>             int     0x15                            ;   BIOS(0x15, 0xE820);
+    21                              <1>                                                     ; }
+    22                              <1> 
+    23 00000315 663D50414D53        <1>             cmp     eax, 'PAMS'                     ; コマンド未対応なら終了
+    24 0000031B 7405                <1>             je      .12E
+    25 0000031D EB4F                <1>             jmp     .10E
+    26                              <1> 
+    27                              <1> .12E:
+    27          ******************  <1>  error: label `get_mem_info.12E' changed during code generation [-w+error=label-redef-late]
+    28                              <1> 
+    29                              <1> 
+    30 0000031F 7305                <1>             jnc     .14E                            ; CF 0:成功 1:失敗
+    31 00000321 EB4B                <1>             jmp     .10E
+    32                              <1> .14E:
+    32          ******************  <1>  error: label `get_mem_info.14E' changed during code generation [-w+error=label-redef-late]
+    33                              <1> 
+    34 00000323 5783C402            <1>             cdecl   put_mem_info, di                ; 1レコード分のメモリ情報を表示
+    34          ******************  <1>  error: symbol `put_mem_info' undefined
+    35                              <1> 
+    36                              <1>             ;ACPI data のアドレスを取得
+    37 00000327 668B4510            <1>             mov     eax, [di + 16]                  ; EAX = データタイプ
+    38 0000032B 6683F803            <1>             cmp     eax, 3                          ; 3:AddressRangeACPI
+    39 0000032F 7515                <1>             jne     .15E
+    40                              <1> 
+    41 00000331 668B05              <1>             mov     eax, [di + 0]                   ; EAX = BASE address
+    42 00000334 66A3[0402]          <1>             mov     [ACPI_DATA.adr], eax
+    43                              <1> 
+    44 00000338 668B4508            <1>             mov     eax, [di + 8]
+    45 0000033C 66A3[0802]          <1>             mov     [ACPI_DATA.len], eax
+    46                              <1> .15E:
+    46          ******************  <1>  error: label `get_mem_info.15E' changed during code generation [-w+error=label-redef-late]
+    47                              <1> 
+    48 00000340 6683FB00            <1>             cmp     ebx, 0
+    49 00000344 7422                <1>             jz      .16E
+    50                              <1> 
+    51 00000346 45                  <1>             inc     bp                              ; lines++
+    52 00000347 83E507              <1>             and     bp, 0x07                        ; lines &= 0x07; //メモリ情報を8行表示するたびに
+    53 0000034A 751C                <1>             jnz     .16E                            ;                //ユーザーからのキー入力があるまで
+    54                              <1>                                                     ;                //処理を中断
+    55 0000034C 68[6E03]E870FD83C4- <1>             cdecl   puts, .s2                       ; 中断メッセージ
+    55 00000354 02                  <1>
+    56 00000355 B410                <1>             mov     ah, 0x10                        ; キー入力待ち
+    57 00000357 CD16                <1>             int     0x16
+    58                              <1> 
+    59 00000359 68[7903]E863FD83C4- <1>             cdecl   puts, .s3
+    59 00000361 02                  <1>
+    60                              <1> .16E:
+    60          ******************  <1>  error: label `get_mem_info.16E' changed during code generation [-w+error=label-redef-late]
+    61                              <1> 
+    62 00000362 6683FB00            <1>             cmp     ebx, 0
+    63 00000366 7599                <1>             jne     .10L
+    64                              <1> .10E:
+    64          ******************  <1>  error: label `get_mem_info.10E' changed during code generation [-w+error=label-redef-late]
+    65                              <1> 
+    66 00000368 203C6D6F72652E2E2E- <1> .s2:        db  " <more...>", 0
+    66          ******************  <1>  error: label `get_mem_info.s2' changed during code generation [-w+error=label-redef-late]
+    66 00000371 3E00                <1>
+    67 00000373 0D2020202020202020- <1> .s3:        db  0x0D, "          ", 0x0D, 0
+    67          ******************  <1>  error: label `get_mem_info.s3' changed during code generation [-w+error=label-redef-late]
+    67 0000037C 20200D00            <1>
     98                                  
-    99                                          ;文字列を表示
-   100 000002E5 68[5F03]E8D7FD83C4-             cdecl   puts, .s0
-   100 000002ED 02                 
-   101                                  
-   102                                          ;ドライブ情報を取得
-   103 000002EE 68[BA00]E890FF83C4-             cdecl   get_drive_params, BOOT          ;get_drive_params(DX, BOOT.CYLN);
-   103 000002F6 02                 
-   104 000002F7 83F800                          cmp     ax, 0                           ;if (0 == AX){
-   105 000002FA 750C                    .10Q:   jne     .10E                            ;       puts(.e0);
-   106 000002FC 68[9603]E8C0FD83C4-     .10T:   cdecl   puts, .e0                       ;       reboot();
-   106 00000304 02                 
-   107 00000305 E8D9FD                          call    reboot                          ; }
-   108                                  .10E:
-   109                                  
-   110                                          ;ドライブ情報を表示
-   111 00000308 A1[BA00]                        mov     ax, [BOOT + drive.no]           ;AX = ブートドライブ
-   112 0000030B 6A046A106A0268-                 cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
-   112 00000312 [7703]50E8ECFE83C4-
-   112 0000031A 0A                 
-   113 0000031B A1[BC00]                        mov     ax, [BOOT + drive.cyln]           ;
-   114 0000031E 6A046A106A0468-                 cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
-   114 00000325 [7F03]50E8D9FE83C4-
-   114 0000032D 0A                 
-   115 0000032E A1[BE00]                        mov     ax, [BOOT + drive.head]           ;AX = ヘッド数
-   116 00000331 6A046A106A0268-                 cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
-   116 00000338 [8903]50E8C6FE83C4-
-   116 00000340 0A                 
-   117 00000341 A1[C000]                        mov     ax, [BOOT + drive.sect]           ;AX = トラック当たりのセクタ数
-   118 00000344 6A046A106A0268-                 cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
-   118 0000034B [9103]50E8B3FE83C4-
-   118 00000353 0A                 
-   119 00000354 68[6E03]E868FD83C4-             cdecl   puts, .s1
-   119 0000035C 02                 
-   120                                  
-   121                                  
-   122                                          ;処理の終了
-   123                                  
-   124 0000035D EB52                            jmp     stage_3
+    99                                  ;ブート処理の第2ステージ
+   100                                  
+   101                                  stage_2:
+   101          ******************       error: label `stage_2' changed during code generation [-w+error=label-redef-late]
+   102                                  
+   103                                          ;文字列を表示
+   104 00000380 68[0004]E83CFD83C4-             cdecl   puts, .s0
+   104 00000388 02                 
+   105                                  
+   106                                          ;ドライブ情報を取得
+   107 00000389 68[BA00]E8FDFE83C4-             cdecl   get_drive_params, BOOT          ;get_drive_params(DX, BOOT.CYLN);
+   107 00000391 02                 
+   108 00000392 83F800                          cmp     ax, 0                           ;if (0 == AX){
+   109 00000395 7512                    .10Q:   jne     .10E                            ;       puts(.e0);
+   109          ******************       error: label `stage_2.10Q' changed during code generation [-w+error=label-redef-late]
+   110 00000397 68[3704]E825FD83C4-     .10T:   cdecl   puts, .e0                       ;       reboot();
+   110          ******************       error: label `stage_2.10T' changed during code generation [-w+error=label-redef-late]
+   110 0000039F 02                 
+   111 000003A0 E83EFD                          call    reboot                          ; }
+   112                                  .10E:
+   112          ******************       error: label `stage_2.10E' changed during code generation [-w+error=label-redef-late]
+   113                                  
+   114                                          ;ドライブ情報を表示
+   115 000003A3 A1[BA00]                        mov     ax, [BOOT + drive.no]           ;AX = ブートドライブ
+   116 000003A6 6A046A106A0268-                 cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
+   116 000003AD [1804]50E859FE83C4-
+   116 000003B5 0A                 
+   117 000003B6 A1[BC00]                        mov     ax, [BOOT + drive.cyln]           ;
+   118 000003B9 6A046A106A0468-                 cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
+   118 000003C0 [2004]50E846FE83C4-
+   118 000003C8 0A                 
+   119 000003C9 A1[BE00]                        mov     ax, [BOOT + drive.head]           ;AX = ヘッド数
+   120 000003CC 6A046A106A0268-                 cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
+   120 000003D3 [2A04]50E833FE83C4-
+   120 000003DB 0A                 
+   121 000003DC A1[C000]                        mov     ax, [BOOT + drive.sect]           ;AX = トラック当たりのセクタ数
+   122 000003DF 6A046A106A0268-                 cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
+   122 000003E6 [3204]50E820FE83C4-
+   122 000003EE 0A                 
+   123 000003EF 68[0F04]E8CDFC83C4-             cdecl   puts, .s1
+   123 000003F7 02                 
+   124                                  
    125                                  
-   126                                          ;データ
+   126                                          ;処理の終了
    127                                  
-   128 0000035F 326E64207374616765-     .s0     db      "2nd stage...", 0x0A, 0x0D, 0
-   128 00000368 2E2E2E0A0D00       
+   128 000003F8 EB58                            jmp     stage_3
    129                                  
-   130 0000036E 2044726976653A3078      .s1     db      " Drive:0x"
-   131 00000377 20202C20433A3078        .p1     db      "  , C:0x"
-   132 0000037F 202020202C20483A30-     .p2     db      "    , H:0x"
-   132 00000388 78                 
-   133 00000389 20202C20533A3078        .p3     db      "  , S:0x"
-   134 00000391 20200A0D00              .p4     db      "  ", 0x0A, 0x0D, 0
-   135                                  
-   136 00000396 43616E277420676574-     .e0     db      "Can't get drive Parameter.", 0
-   136 0000039F 206472697665205061-
-   136 000003A8 72616D657465722E00 
-   137                                  
-   138                                  stage_3:
+   130                                          ;データ
+   131                                  
+   132 000003FA 326E64207374616765-     .s0     db      "2nd stage...", 0x0A, 0x0D, 0
+   132          ******************       error: label `stage_2.s0' changed during code generation [-w+error=label-redef-late]
+   132 00000403 2E2E2E0A0D00       
+   133                                  
+   134 00000409 2044726976653A3078      .s1     db      " Drive:0x"
+   134          ******************       error: label `stage_2.s1' changed during code generation [-w+error=label-redef-late]
+   135 00000412 20202C20433A3078        .p1     db      "  , C:0x"
+   135          ******************       error: label `stage_2.p1' changed during code generation [-w+error=label-redef-late]
+   136 0000041A 202020202C20483A30-     .p2     db      "    , H:0x"
+   136          ******************       error: label `stage_2.p2' changed during code generation [-w+error=label-redef-late]
+   136 00000423 78                 
+   137 00000424 20202C20533A3078        .p3     db      "  , S:0x"
+   137          ******************       error: label `stage_2.p3' changed during code generation [-w+error=label-redef-late]
+   138 0000042C 20200A0D00              .p4     db      "  ", 0x0A, 0x0D, 0
+   138          ******************       error: label `stage_2.p4' changed during code generation [-w+error=label-redef-late]
    139                                  
-   140                                          ;文字列を表示
-   141 000003B1 68[F403]E80BFD83C4-             cdecl   puts, .s0
-   141 000003B9 02                 
-   142                                  
-   143                                          ;プロテクトモードで使用するフォントは
-   144                                          ;BIOSに内蔵されたものを流用する
-   145                                  
-   146 000003BA 68[0002]E805FF83C4-             cdecl   get_font_adr, FONT
-   146 000003C2 02                 
-   147                                  
-   148                                          ;フォントアドレスの表示
-   149 000003C3 6A046A106A0468-                 cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
-   149 000003CA [1104]FF36[0002]E8-
-   149 000003D1 31FE83C40A         
-   150 000003D6 6A046A106A0468-                 cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
-   150 000003DD [1604]FF36[0202]E8-
-   150 000003E4 1EFE83C40A         
-   151 000003E9 68[0304]E8D3FC83C4-             cdecl   puts, .s1
-   151 000003F1 02                 
-   152                                  
-   153                                          ;処理の終了
-   154                                  
-   155 000003F2 EBFE                            jmp     $
+   140 00000431 43616E277420676574-     .e0     db      "Can't get drive Parameter.", 0
+   140          ******************       error: label `stage_2.e0' changed during code generation [-w+error=label-redef-late]
+   140 0000043A 206472697665205061-
+   140 00000443 72616D657465722E00 
+   141                                  
+   142                                  stage_3:
+   142          ******************       error: label `stage_3' changed during code generation [-w+error=label-redef-late]
+   143                                  
+   144                                          ;文字列を表示
+   145 0000044C 68[D504]E870FC83C4-             cdecl   puts, .s0
+   145 00000454 02                 
+   146                                  
+   147                                          ;プロテクトモードで使用するフォントは
+   148                                          ;BIOSに内蔵されたものを流用する
+   149                                  
+   150 00000455 68[0002]E872FE83C4-             cdecl   get_font_adr, FONT
+   150 0000045D 02                 
+   151                                  
+   152                                          ;フォントアドレスの表示
+   153 0000045E 6A046A106A0468-                 cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
+   153 00000465 [F204]FF36[0002]E8-
+   153 0000046C 9EFD83C40A         
+   154 00000471 6A046A106A0468-                 cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
+   154 00000478 [F704]FF36[0202]E8-
+   154 0000047F 8BFD83C40A         
+   155 00000484 68[E404]E838FC83C4-             cdecl   puts, .s1
+   155 0000048C 02                 
    156                                  
-   157                                          ;データ
-   158 000003F4 337264207374616765-     .s0     db      "3rd stage...", 0x0A, 0x0D, 0
-   158 000003FD 2E2E2E0A0D00       
+   157                                          ;メモリ情報の取得と表示
+   158 0000048D 68[0402]E85AFE83C4-             cdecl   get_mem_info, ACPI_DATA                 ;get_mem_info(&ACPI_DATA)
+   158 00000495 02                 
    159                                  
-   160 00000403 20466F6E7420416464-     .s1     db      " Font Address="
-   160 0000040C 726573733D         
-   161 00000411 5A5A5A5A3A              .p1     db      "ZZZZ:"
-   162 00000416 5A5A5A5A0A0D00          .p2     db      "ZZZZ", 0x0A, 0x0D, 0
-   163 0000041D 0A0D00                          db      0x0A, 0x0D, 0
-   164                                  
-   165                                  ;パディング
-   166                                  
-   167 00000420 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
+   160 00000496 66A1[0402]                      mov     eax, [ACPI_DATA.adr]
+   161 0000049A 6683F800                        cmp     eax, 0
+   162 0000049E 7433                            je      .10E
+   163                                  
+   164 000004A0 6A046A106A0468-                 cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ;下位アドレス
+   164 000004A7 [1105]50E85FFD83C4-
+   164 000004AF 0A                 
+   165 000004B0 66C1E810                        shr     eax, 16                                 ;EAX >>= 16
+   166 000004B4 6A046A106A0468-                 cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ;上位アドレス
+   166 000004BB [0D05]50E84BFD83C4-
+   166 000004C3 0A                 
+   167                                  
+   168 000004C4 68[0105]E8F8FB83C4-             cdecl   puts, .s2
+   168 000004CC 02                 
+   169                                  .10E
+   169          ******************       warning: label alone on a line without a colon might be in error [-w+orphan-labels]
+   169          ******************       error: label `stage_3.10E' changed during code generation [-w+error=label-redef-late]
+   170                                  
+   171                                          ;処理の終了
+   172 000004CD EBFE                            jmp     $
+   173                                  
+   174                                          ;データ
+   175 000004CF 337264207374616765-     .s0     db      "3rd stage...", 0x0A, 0x0D, 0
+   175          ******************       error: label `stage_3.s0' changed during code generation [-w+error=label-redef-late]
+   175 000004D8 2E2E2E0A0D00       
+   176                                  
+   177 000004DE 20466F6E7420416464-     .s1     db      " Font Address="
+   177          ******************       error: label `stage_3.s1' changed during code generation [-w+error=label-redef-late]
+   177 000004E7 726573733D         
+   178 000004EC 5A5A5A5A3A              .p1     db      "ZZZZ:"
+   178          ******************       error: label `stage_3.p1' changed during code generation [-w+error=label-redef-late]
+   179 000004F1 5A5A5A5A0A0D00          .p2     db      "ZZZZ", 0x0A, 0x0D, 0
+   179          ******************       error: label `stage_3.p2' changed during code generation [-w+error=label-redef-late]
+   180 000004F8 0A0D00                          db      0x0A, 0x0D, 0
+   181                                  
+   182 000004FB 204143504920646174-     .s2     db      " ACPI data ="
+   182          ******************       error: label `stage_3.s2' changed during code generation [-w+error=label-redef-late]
+   182 00000504 61203D             
+   183 00000507 5A5A5A5A                .p3     db      "ZZZZ"
+   183          ******************       error: label `stage_3.p3' changed during code generation [-w+error=label-redef-late]
+   184 0000050B 585858580A0D00          .p4     db      "XXXX", 0x0A, 0x0D, 0
+   184          ******************       error: label `stage_3.p4' changed during code generation [-w+error=label-redef-late]
+   185                                  
+   186                                  ;パディング
+   187                                  
+   188 00000512 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
