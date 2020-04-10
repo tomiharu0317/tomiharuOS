@@ -172,16 +172,16 @@ stage_3:
         jmp     $
 
         ;データ
-.s0     db      "3rd stage...", 0x0A, 0x0D, 0
+.s0:    db      "3rd stage...", 0x0A, 0x0D, 0
 
-.s1     db      " Font Address="
-.p1     db      "ZZZZ:"
-.p2     db      "ZZZZ", 0x0A, 0x0D, 0
+.s1:    db      " Font Address="
+.p1:    db      "ZZZZ:"
+.p2:    db      "ZZZZ", 0x0A, 0x0D, 0
         db      0x0A, 0x0D, 0
 
-.s2     db      " ACPI data ="
-.p3     db      "ZZZZ"
-.p4     db      "XXXX", 0x0A, 0x0D, 0
+.s2:    db      " ACPI data ="
+.p3:    db      "ZZZZ"
+.p4:    db      "XXXX", 0x0A, 0x0D, 0
 
 ;パディング
 
