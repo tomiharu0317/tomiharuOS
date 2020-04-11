@@ -728,7 +728,7 @@
     13                              <1> .10L:
     14 000005A2 E464                <1>             in      al, 0x64
     15 000005A4 A802                <1>             test    al, 0x02                            ; ZF = AL & 0x02 // B1:input buffer full
-    16 000005A6 E1FA                <1>             loopz  .10L                                ; loop while 1 set at B1
+    16 000005A6 E0FA                <1>             loopnz  .10L                                ; loop while 1 set at B1
     17                              <1> 
     18 000005A8 83F900              <1>             cmp     cx, 0
     19 000005AB 7405                <1>             jz      .20E                                ; timeout
@@ -765,7 +765,7 @@
     50                              <1> .10L:
     51 000005C1 E464                <1>             in      al, 0x64
     52 000005C3 A801                <1>             test    al, 0x01                            ; ZF = AL & 0x01 // B0:output buffer full
-    53 000005C5 E0FA                <1>             loopnz  .10L                                 ; loop while 0 set at B0
+    53 000005C5 E1FA                <1>             loopz  .10L                                 ; loop while 0 set at B0
     54                              <1> 
     55 000005C7 83F900              <1>             cmp     cx, 0
     56 000005CA 7409                <1>             jz      .20E
@@ -805,7 +805,7 @@
     90                              <1> .10L:
     91 000005E4 E464                <1>             in      al, 0x64
     92 000005E6 A802                <1>             test    al, 0x02                            ; ZF = AL & 0x02 // B1:input buffer full
-    93 000005E8 E1FA                <1>             loopz  .10L
+    93 000005E8 E0FA                <1>             loopnz  .10L
     94                              <1> 
     95 000005EA 83F900              <1>             cmp     cx, 0
     96 000005ED 7405                <1>             jz      .20E                                ; timeout
