@@ -95,6 +95,7 @@ ACPI_DATA:
 %include    "../modules/real/get_drive_params.s"
 %include    "../modules/real/get_font_adr.s"
 %include    "../modules/real/get_mem_info.s"
+%include    "../modules/real/kbc.s"
 
 ;ブート処理の第2ステージ
 
@@ -169,7 +170,7 @@ stage_3:
 .10E:
 
         ;処理の終了
-        jmp     $
+        jmp     stage_4
 
         ;データ
 .s0:    db      "3rd stage...", 0x0A, 0x0D, 0
@@ -183,6 +184,44 @@ stage_3:
 .p3:    db      "ZZZZ"
 .p4:    db      "XXXX", 0x0A, 0x0D, 0
 
-;パディング
+
+
+stage_4:
+
+        ; put char
+        cdecl   puts, .s0
+
+        ; enable A20 gate
+
+        cli                                             ; disable interrupt
+
+        cdecl   KBC_Cmd_Write, 0xAD                     ; disable Keyboard
+
+        cdecl   KBC_Cmd_Write, 0xD0                     ; cmd that read output port
+        cdecl   KBC_Data_Read, .key                     ; output port data
+
+        mov     bl, [.key]
+        or      bl, 0x02                                ; Enable A20 gate
+
+        cdecl   KBC_Cmd_Write, 0xD1                     ; cmd that write output port
+        cdecl   KBC_Data_Write, bx                      ; output port data
+
+        cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
+
+        sti
+
+        ; put char
+        cdecl   puts, .s1
+
+        ; End of Process
+        jmp     $
+
+        ; data
+.s0:    db      "4th stage...", 0x0A, 0x0D, 0
+.s1:    db      " A20 Gate Enabled.", 0x0A, 0x0D, 0
+
+.key:   dw      0
+
+        ; Padding
 
         times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト

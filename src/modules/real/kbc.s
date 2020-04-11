@@ -13,7 +13,7 @@ KBC_Data_Write:
 .10L:
             in      al, 0x64
             test    al, 0x02                            ; ZF = AL & 0x02 // B1:input buffer full
-            loopnz  .10L
+            loopz  .10L                                ; loop while 1 set at B1
 
             cmp     cx, 0
             jz      .20E                                ; timeout
@@ -43,13 +43,14 @@ KBC_Data_Read:
 
             ;save register
             push    cx
+            push    di
 
             ;process
             mov     cx, 0
 .10L:
             in      al, 0x64
             test    al, 0x01                            ; ZF = AL & 0x01 // B0:output buffer full
-            loopnz  .10L
+            loopnz  .10L                                 ; loop while 0 set at B0
 
             cmp     cx, 0
             jz      .20E
@@ -64,6 +65,7 @@ KBC_Data_Read:
             mov     ax, cx
 
             ;return register
+            pop     di
             pop     cx
 
             ;destruct stack frame
@@ -88,7 +90,7 @@ KBC_Cmd_Write:
 .10L:
             in      al, 0x64
             test    al, 0x02                            ; ZF = AL & 0x02 // B1:input buffer full
-            loopnz  .10L
+            loopz  .10L
 
             cmp     cx, 0
             jz      .20E                                ; timeout
