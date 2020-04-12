@@ -213,12 +213,70 @@ stage_4:
         ; put char
         cdecl   puts, .s1
 
+        ; Test Keyboard LED
+        cdecl   puts, .s2
+
+        mov     bx, 0                                   ; BX = initial value of LED
+
+.10L:
+        mov     ah, 0x00
+        int     0x16                                    ; AL = BIOS(0x16, 0x00)  //getting key code
+
+        cmp     al, '1'                                 ; if (AL < '1') break;
+        jb      .10E
+
+        cmp     al, '3'                                 ; if (AL > '3') break;
+        ja      .10E
+
+        mov     cl, al
+        dec     cl
+        and     cl, 0x03                                ; CL = times of bit shift
+        mov     ax, 0x0001                              ; AX = for bit conversion
+        shl     ax, cl                                  ; AX <<= CL
+        xor     bx, ax                                  ; BX ^= AX      // bit inversion
+
+        ; Send LED command
+
+        cli                                             ; disable interrupt
+        cdecl   KBC_Cmd_Write, 0xAD                     ; disable keyboard
+
+        cdecl   KBC_Data_Write, 0xED                    ; AX = KBC_Data_Write(0xED) // LED command
+        cdecl   KBC_Data_Read, .key                     ; AX = KBC_Data_Read(&key) // ACK(Acknowledge)
+
+        cmp     [.key], byte 0xFA                       ; whether it's equipped with LED
+        jne     .11F
+
+        cdecl   KBC_Data_Write, bx                      ; AX = KBC_Data_Write(BX) // LED data
+
+        jmp     .11E
+
+.11F:
+        cdecl   int_to_str, word [.key], .e1, 2, 16, 0b0100
+        cdecl   puts, .e0                               ; put received code
+
+.11E:
+
+        cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
+
+        sti                                             ; Enable interrupt
+
+        jmp     .10L
+
+.10E:
+
+        ; put char
+        cdecl   puts, .s3
+
         ; End of Process
         jmp     $
 
         ; data
 .s0:    db      "4th stage...", 0x0A, 0x0D, 0
 .s1:    db      " A20 Gate Enabled.", 0x0A, 0x0D, 0
+.s2:    db      "Keyboard LED Test...", 0
+.s3:    db      "(done)", 0x0A, 0x0D, 0
+.e0:    db      "["
+.e1:    db      "ZZ]", 0
 
 .key:   dw      0
 

@@ -949,7 +949,7 @@
    189                                  stage_4:
    190                                  
    191                                          ; put char
-   192 00000787 68[D807]E835F983C4-             cdecl   puts, .s0
+   192 00000787 68[5B08]E835F983C4-             cdecl   puts, .s0
    192 0000078F 02                 
    193                                  
    194                                          ; enable A20 gate
@@ -959,10 +959,10 @@
    198 00000791 68AD00E846FE83C402              cdecl   KBC_Cmd_Write, 0xAD                     ; disable Keyboard
    199                                  
    200 0000079A 68D000E83DFE83C402              cdecl   KBC_Cmd_Write, 0xD0                     ; cmd that read output port
-   201 000007A3 68[FC07]E810FE83C4-             cdecl   KBC_Data_Read, .key                     ; output port data
+   201 000007A3 68[A208]E810FE83C4-             cdecl   KBC_Data_Read, .key                     ; output port data
    201 000007AB 02                 
    202                                  
-   203 000007AC 8A1E[FC07]                      mov     bl, [.key]
+   203 000007AC 8A1E[A208]                      mov     bl, [.key]
    204 000007B0 80CB02                          or      bl, 0x02                                ; Enable A20 gate
    205                                  
    206 000007B3 68D100E824FE83C402              cdecl   KBC_Cmd_Write, 0xD1                     ; cmd that write output port
@@ -973,21 +973,87 @@
    211 000007CC FB                              sti
    212                                  
    213                                          ; put char
-   214 000007CD 68[E707]E8EFF883C4-             cdecl   puts, .s1
+   214 000007CD 68[6A08]E8EFF883C4-             cdecl   puts, .s1
    214 000007D5 02                 
    215                                  
-   216                                          ; End of Process
-   217 000007D6 EBFE                            jmp     $
+   216                                          ; Test Keyboard LED
+   217 000007D6 68[7F08]E8E6F883C4-             cdecl   puts, .s2
+   217 000007DE 02                 
    218                                  
-   219                                          ; data
-   220 000007D8 347468207374616765-     .s0:    db      "4th stage...", 0x0A, 0x0D, 0
-   220 000007E1 2E2E2E0A0D00       
-   221 000007E7 204132302047617465-     .s1:    db      " A20 Gate Enabled.", 0x0A, 0x0D, 0
-   221 000007F0 20456E61626C65642E-
-   221 000007F9 0A0D00             
-   222                                  
-   223 000007FC 0000                    .key:   dw      0
+   219 000007DF BB0000                          mov     bx, 0                                   ; BX = initial value of LED
+   220                                  
+   221                                  .10L:
+   222 000007E2 B400                            mov     ah, 0x00
+   223 000007E4 CD16                            int     0x16                                    ; AL = BIOS(0x16, 0x00)  //getting key code
    224                                  
-   225                                          ; Padding
-   226                                  
-   227 000007FE 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
+   225 000007E6 3C31                            cmp     al, '1'                                 ; if (AL < '1') break;
+   226 000007E8 7266                            jb      .10E
+   227                                  
+   228 000007EA 3C33                            cmp     al, '3'                                 ; if (AL > '3') break;
+   229 000007EC 7762                            ja      .10E
+   230                                  
+   231 000007EE 88C1                            mov     cl, al
+   232 000007F0 FEC9                            dec     cl
+   233 000007F2 80E103                          and     cl, 0x03                                ; CL = times of bit shift
+   234 000007F5 B80100                          mov     ax, 0x0001                              ; AX = for bit conversion
+   235 000007F8 D3E0                            shl     ax, cl                                  ; AX <<= CL
+   236 000007FA 31C3                            xor     bx, ax                                  ; BX ^= AX      // bit inversion
+   237                                  
+   238                                          ; Send LED command
+   239                                  
+   240 000007FC FA                              cli                                             ; disable interrupt
+   241 000007FD 68AD00E8DAFD83C402              cdecl   KBC_Cmd_Write, 0xAD                     ; disable keyboard
+   242                                  
+   243 00000806 68ED00E88FFD83C402              cdecl   KBC_Data_Write, 0xED                    ; AX = KBC_Data_Write(0xED) // LED command
+   244 0000080F 68[A208]E8A4FD83C4-             cdecl   KBC_Data_Read, .key                     ; AX = KBC_Data_Read(&key) // ACK(Acknowledge)
+   244 00000817 02                 
+   245                                  
+   246 00000818 803E[A208]FA                    cmp     [.key], byte 0xFA                       ; whether it's equipped with LED
+   247 0000081D 7509                            jne     .11F
+   248                                  
+   249 0000081F 53E878FD83C402                  cdecl   KBC_Data_Write, bx                      ; AX = KBC_Data_Write(BX) // LED data
+   250                                  
+   251 00000826 EB1C                            jmp     .11E
+   252                                  
+   253                                  .11F:
+   254 00000828 6A046A106A0268-                 cdecl   int_to_str, word [.key], .e1, 2, 16, 0b0100
+   254 0000082F [9E08]FF36[A208]E8-
+   254 00000836 D4F983C40A         
+   255 0000083B 68[9D08]E881F883C4-             cdecl   puts, .e0                               ; put received code
+   255 00000843 02                 
+   256                                  
+   257                                  .11E:
+   258                                  
+   259 00000844 68AE00E893FD83C402              cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
+   260                                  
+   261 0000084D FB                              sti                                             ; Enable interrupt
+   262                                  
+   263 0000084E EB92                            jmp     .10L
+   264                                  
+   265                                  .10E:
+   266                                  
+   267                                          ; put char
+   268 00000850 68[9408]E86CF883C4-             cdecl   puts, .s3
+   268 00000858 02                 
+   269                                  
+   270                                          ; End of Process
+   271 00000859 EBFE                            jmp     $
+   272                                  
+   273                                          ; data
+   274 0000085B 347468207374616765-     .s0:    db      "4th stage...", 0x0A, 0x0D, 0
+   274 00000864 2E2E2E0A0D00       
+   275 0000086A 204132302047617465-     .s1:    db      " A20 Gate Enabled.", 0x0A, 0x0D, 0
+   275 00000873 20456E61626C65642E-
+   275 0000087C 0A0D00             
+   276 0000087F 4B6579626F61726420-     .s2:    db      "Keyboard LED Test...", 0
+   276 00000888 4C454420546573742E-
+   276 00000891 2E2E00             
+   277 00000894 28646F6E65290A0D00      .s3:    db      "(done)", 0x0A, 0x0D, 0
+   278 0000089D 5B                      .e0:    db      "["
+   279 0000089E 5A5A5D00                .e1:    db      "ZZ]", 0
+   280                                  
+   281 000008A2 0000                    .key:   dw      0
+   282                                  
+   283                                          ; Padding
+   284                                  
+   285 000008A4 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
