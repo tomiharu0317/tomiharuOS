@@ -186,7 +186,7 @@ stage_3:
 
 .s2:    db      " ACPI data ="
 .p3:    db      "ZZZZ"
-.p4:    db      "XXXX", 0x0A, 0x0D, 0
+.p4:    db      "ZZZZ", 0x0A, 0x0D, 0
 
 
 
@@ -324,6 +324,9 @@ stage_6:
 
         ; End of Process
         jmp     $
+
+.s0:    db      "6th stage...", 0x0A, 0x0D, 0x0A, 0x0D
+        db      " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0
 
         ; Padding
         times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
