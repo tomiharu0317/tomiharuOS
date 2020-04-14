@@ -42,7 +42,7 @@ ipl:
         mov     bx, BOOT_SECT - 1           ;BX = 残りのブートセクト数
         mov     cx, BOOT_LOAD + SECT_SIZE   ;CX = 次のロードアドレス
 
-        cdecl   read_sect, BOOT, bx, cx     ;AX = read_sect(BOOT, bx, cx)
+        cdecl   read_chs, BOOT, bx, cx     ;AX = read_chs(BOOT, bx, cx)
 
         cmp     ax, bx
 .10Q:   jz      .10E                        ;if (ax != 残りのセクタ数)
@@ -76,7 +76,7 @@ BOOT:
 
 %include    "../modules/real/puts.s"
 %include    "../modules/real/reboot.s"
-%include    "../modules/real/read_sect.s"
+%include    "../modules/real/read_chs.s"
 
 ;ブートフラグ(512biteの終了)
 
