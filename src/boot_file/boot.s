@@ -96,8 +96,9 @@ ACPI_DATA:
 %include    "../modules/real/get_font_adr.s"
 %include    "../modules/real/get_mem_info.s"
 %include    "../modules/real/kbc.s"
-%include    "../modules/real/read_lba.s"
 %include    "../modules/real/lba_chs.s"
+%include    "../modules/real/read_lba.s"
+
 
 
 ;ブート処理の第2ステージ
@@ -283,8 +284,6 @@ stage_4:
 
 .key:   dw      0
 
-        ; Padding
-
 stage_5:
 
         ; put char
@@ -300,9 +299,31 @@ stage_5:
 .10E:
 
         ; End of Process
-        jmp     $
+        jmp     stage_6
 
 .s0:    db      "5th stage...", 0x0A, 0x0D, 0
 .e0:    db      "Failure to load kernel...", 0x0A, 0x0D, 0
 
+stage_6:
+
+        ; put char
+        cdecl   puts, .s0
+
+        ; wait until user approves
+
+.10L:
+
+        mov     ah, 0x00
+        int     0x16
+        cmp     al, ' '
+        jne     .10L
+
+        ; set video mode
+        mov     ax, 0x0012
+        int     0x10
+
+        ; End of Process
+        jmp     $
+
+        ; Padding
         times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト

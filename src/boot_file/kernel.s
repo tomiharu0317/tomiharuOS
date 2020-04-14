@@ -15,4 +15,4 @@ kernel:
 
 ; Padding
 
-            times   KERNEL_SIZE - ($ - $$)      db 0    ; size of kernel // 8K byte
+            times   KERNEL_SIZE - ($ - $$)      db 0x00   ; size of kernel // 8K byte

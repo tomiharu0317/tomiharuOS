@@ -51,4 +51,4 @@
     15                                  
     16                                  ; Padding
     17                                  
-    18 00000002 00<rept>                            times   KERNEL_SIZE - ($ - $$)      db 0    ; size of kernel // 8K byte
+    18 00000002 00<rept>                            times   KERNEL_SIZE - ($ - $$)      db 0x00   ; size of kernel // 8K byte
