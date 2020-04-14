@@ -30,10 +30,12 @@ read_lba:
 
             pop     si
 
-            ;distruct stack frame
+            ;destruct stack frame
 
             mov     sp, bp
             pop     bp
 
-.chs:       times   drive_size      db 0
+            ret
+ALIGN 2
+.chs:	times drive_size	db	0
 

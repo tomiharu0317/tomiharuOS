@@ -41,3 +41,16 @@ lba_chs:
 
             mov     [di + drive.head], ax
             mov     [di + drive.sect], dx
+
+            ; return registers
+            pop     di
+            pop     si
+            pop     dx
+            pop     bx
+            pop     ax
+
+            ; destruct stack frame
+            mov     sp, bp
+            pop     bp
+
+            ret

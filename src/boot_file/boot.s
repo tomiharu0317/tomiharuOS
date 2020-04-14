@@ -96,6 +96,9 @@ ACPI_DATA:
 %include    "../modules/real/get_font_adr.s"
 %include    "../modules/real/get_mem_info.s"
 %include    "../modules/real/kbc.s"
+%include    "../modules/real/read_lba.s"
+%include    "../modules/real/lba_chs.s"
+
 
 ;ブート処理の第2ステージ
 
@@ -268,7 +271,7 @@ stage_4:
         cdecl   puts, .s3
 
         ; End of Process
-        jmp     $
+        jmp     stage_5
 
         ; data
 .s0:    db      "4th stage...", 0x0A, 0x0D, 0
@@ -281,5 +284,25 @@ stage_4:
 .key:   dw      0
 
         ; Padding
+
+stage_5:
+
+        ; put char
+        cdecl   puts, .s0
+
+        ; load Kernel
+        cdecl   read_lba, BOOT, BOOT_SECT, KERNEL_SECT, BOOT_END
+
+        cmp     ax, KERNEL_SECT
+.10Q:   jz      .10E
+.10T:   cdecl   puts, .e0
+        call    reboot
+.10E:
+
+        ; End of Process
+        jmp     $
+
+.s0:    db      "5th stage...", 0x0A, 0x0D, 0
+.e0:    db      "Failure to load kernel...", 0x0A, 0x0D, 0
 
         times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
