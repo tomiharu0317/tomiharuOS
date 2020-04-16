@@ -323,10 +323,73 @@ stage_6:
         int     0x10
 
         ; End of Process
-        jmp     $
+        jmp     stage_7
 
 .s0:    db      "6th stage...", 0x0A, 0x0D, 0x0A, 0x0D
         db      " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0
+
+;
+; GLOBAL DESCRIPTOR TABLE
+;
+ALIGN 4, db 0
+GDT:    dq      0x00_0000_000000_0000                   ; NULL Descriptor
+.cs:    dq      0x00_CF9A_000000_FFFF                   ; CODE 4G
+.ds:    dq      0x00_CF92_000000_FFFF                   ; DATA 4G
+.gdt_end:
+
+; SEGMENT SELECTOR
+
+SEL_CODE        equ GDT.cs - GDT                        ; selector for code
+SEL_DATA        equ GDT.ds - GDT                        ; selector for data
+
+; GDT
+
+GDTR:   dw      GDT.gdt_end - GDT - 1                   ; limit of descriptor table
+        dd      GDT                                     ; address of descriptor table
+
+; IDT
+
+IDTR:   dw      0                                       ; limit of interrupt descriptor table
+        dd      0                                       ; address of interrupt descriptor table
+
+
+stage_7:
+        cli                                             ; disable interrupt
+
+        ; load Descriptor table
+
+        lgdt    [GDTR]                                  ; load Global Descriptor Table
+        lidt    [IDTR]                                  ; load Interrupt Descriptor Table
+
+        ; migrate to protect mode
+        mov     eax, cr0                                ; set PE(Protect Enable) bit
+        or      ax, 1                                   ; CRO |= 1
+        mov     cr0, eax
+
+        jmp     $ + 2                                   ; clear look ahead of cpu instruction
+
+[BITS 32]
+        db      0x66                                    ; Operand Size Override prefix
+        jmp     SEL_CODE:CODE_32                        ; FAR jump // segment:offset
+
+CODE_32:
+        mov     ax, SEL_DATA
+        mov     ds, ax
+        mov     es, ax
+        mov     fs, ax
+        mov     gs, ax
+        mov     ss, ax
+
+        ; copy kernel program
+
+        mov     ecx, (KERNEL_SIZE) / 4                  ; ECX = copy by 4 byte unit
+        mov     esi, BOOT_END                            ; ESI = 0x0000_9c00 // kernel part
+        mov     edi, KERNEL_LOAD                         ; EDI = 0x0010_1000
+        cld                                             ; DF => +
+        rep     movsd                                   ; while(--ECX) *EDI++ = *ESI++;
+
+        ; migrate to Kernel Process
+        jmp     KERNEL_LOAD
 
         ; Padding
         times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト

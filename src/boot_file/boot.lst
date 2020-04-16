@@ -854,7 +854,7 @@
     19 00000603 8B7604              <1>             mov     si, [bp + 4]
     20 00000606 8B7E06              <1>             mov     di, [bp + 6]
     21                              <1> 
-    22 00000609 8A4404              <1>             mov     al, [si + drive.head]                   ; AL = max head num
+    22 00000609 8A4404              <1>             mov     al,  [si + drive.head]                   ; AL = max head num
     23 0000060C F66406              <1>             mul     byte [si + drive.sect]                 ; AX = max head * max sect
     24 0000060F 89C3                <1>             mov     bx, ax                                  ; BX = num of sect per cylinder
     25                              <1> 
@@ -1211,7 +1211,7 @@
    323 00000980 CD10                            int     0x10
    324                                  
    325                                          ; End of Process
-   326 00000982 EBFE                            jmp     $
+   326 00000982 EB5C                            jmp     stage_7
    327                                  
    328 00000984 367468207374616765-     .s0:    db      "6th stage...", 0x0A, 0x0D, 0x0A, 0x0D
    328 0000098D 2E2E2E0A0D0A0D     
@@ -1221,5 +1221,68 @@
    329 000009AF 206D6F64652E2E2E5D-
    329 000009B8 0A0D00             
    330                                  
-   331                                          ; Padding
-   332 000009BB 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
+   331                                  ;
+   332                                  ; GLOBAL DESCRIPTOR TABLE
+   333                                  ;
+   334 000009BB 00                      ALIGN 4, db 0
+   335 000009BC 0000000000000000        GDT:    dq      0x00_0000_000000_0000                   ; NULL Descriptor
+   336 000009C4 FFFF0000009ACF00        .cs:    dq      0x00_CF9A_000000_FFFF                   ; CODE 4G
+   337 000009CC FFFF00000092CF00        .ds:    dq      0x00_CF92_000000_FFFF                   ; DATA 4G
+   338                                  .gdt_end:
+   339                                  
+   340                                  ; SEGMENT SELECTOR
+   341                                  
+   342                                  SEL_CODE        equ GDT.cs - GDT                        ; selector for code
+   343                                  SEL_DATA        equ GDT.ds - GDT                        ; selector for data
+   344                                  
+   345                                  ; GDT
+   346                                  
+   347 000009D4 1700                    GDTR:   dw      GDT.gdt_end - GDT - 1                   ; limit of descriptor table
+   348 000009D6 [BC090000]                      dd      GDT                                     ; address of descriptor table
+   349                                  
+   350                                  ; IDT
+   351                                  
+   352 000009DA 0000                    IDTR:   dw      0                                       ; limit of interrupt descriptor table
+   353 000009DC 00000000                        dd      0                                       ; address of interrupt descriptor table
+   354                                  
+   355                                  
+   356                                  stage_7:
+   357 000009E0 FA                              cli                                             ; disable interrupt
+   358                                  
+   359                                          ; load Descriptor table
+   360                                  
+   361 000009E1 0F0116[D409]                    lgdt    [GDTR]                                  ; load Global Descriptor Table
+   362 000009E6 0F011E[DA09]                    lidt    [IDTR]                                  ; load Interrupt Descriptor Table
+   363                                  
+   364                                          ; migrate to protect mode
+   365 000009EB 0F20C0                          mov     eax, cr0                                ; set PE(Protect Enable) bit
+   366 000009EE 83C801                          or      ax, 1                                   ; CRO |= 1
+   367 000009F1 0F22C0                          mov     cr0, eax
+   368                                  
+   369 000009F4 EB00                            jmp     $ + 2                                   ; clear look ahead of cpu instruction
+   370                                  
+   371                                  [BITS 32]
+   372 000009F6 66                              db      0x66                                    ; Operand Size Override prefix
+   373 000009F7 EA[FE090000]0800                jmp     SEL_CODE:CODE_32                        ; FAR jump // segment:offset
+   374                                  
+   375                                  CODE_32:
+   376 000009FE 66B81000                        mov     ax, SEL_DATA
+   377 00000A02 8ED8                            mov     ds, ax
+   378 00000A04 8EC0                            mov     es, ax
+   379 00000A06 8EE0                            mov     fs, ax
+   380 00000A08 8EE8                            mov     gs, ax
+   381 00000A0A 8ED0                            mov     ss, ax
+   382                                  
+   383                                          ; copy kernel program
+   384                                  
+   385 00000A0C B900080000                      mov     ecx, (KERNEL_SIZE) / 4                  ; ECX = copy by 4 byte unit
+   386 00000A11 BE009C0000                      mov     esi, BOOT_END                            ; ESI = 0x0000_9c00 // kernel part
+   387 00000A16 BF00101000                      mov     edi, KERNEL_LOAD                         ; EDI = 0x0010_1000
+   388 00000A1B FC                              cld                                             ; DF => +
+   389 00000A1C F3A5                            rep     movsd                                   ; while(--ECX) *EDI++ = *ESI++;
+   390                                  
+   391                                          ; migrate to Kernel Process
+   392 00000A1E E9(00101000)                    jmp     KERNEL_LOAD
+   393                                  
+   394                                          ; Padding
+   395 00000A23 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
