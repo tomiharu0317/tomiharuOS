@@ -58,12 +58,12 @@ vram_font_copy:
                                                             ;EBP+ 8 | font address
 
             ; save registers
-            push    esi
-            push    edi
             push    eax
             push    ebx
             push    ecx
             push    edx
+            push    esi
+            push    edi
 
             ; main process
             mov     esi, [ebp + 8]
@@ -115,12 +115,12 @@ vram_font_copy:
 .10E:
 
             ; return registers
+            pop     edi
+            pop     esi
             pop     edx
             pop     ecx
             pop     ebx
             pop     eax
-            pop     edi
-            pop     esi
 
             ; destruct stack frame
             mov     esp, ebp
