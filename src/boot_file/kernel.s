@@ -27,6 +27,9 @@ kernel:
                 cdecl   draw_char, 1, 0, 0x0212, '1'
                 cdecl   draw_char, 2, 0, 0x0212, '_'
 
+                ; put char
+                cdecl   draw_font, 63, 13
+
                 ; End of Process
                 jmp     $
 
@@ -36,6 +39,7 @@ FONT_ADR:   dd 0
 ; modules
 %include    "../modules/protect/vga.s"
 %include    "../modules/protect/draw_char.s"
+%include    "../modules/protect/draw_font.s"
 
                 ; Padding
 
