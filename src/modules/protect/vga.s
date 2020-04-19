@@ -24,6 +24,8 @@ vga_set_read_plane:
             mov     esp, ebp
             pop     ebp
 
+            ret
+
 vga_set_write_plane:
 
             ; construct stack frame
@@ -49,6 +51,8 @@ vga_set_write_plane:
             ; destruct stack frame
             mov     esp, ebp
             pop     ebp
+
+            ret
 
 vram_font_copy:
 
@@ -125,3 +129,5 @@ vram_font_copy:
             ; destruct stack frame
             mov     esp, ebp
             pop     ebp
+
+            ret

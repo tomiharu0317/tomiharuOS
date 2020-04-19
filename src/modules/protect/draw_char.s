@@ -42,3 +42,14 @@ draw_char:
             cdecl   vga_set_read_plane, 0x00                    ; writing plane : blue(B)
             cdecl   vga_set_write_plane, 0x01                   ; reading plane : blue(B)
             cdecl   vram_font_copy, esi, edi, 0x01, ebx
+
+            ; return registers
+            pop     edi
+            pop     esi
+            pop     ebx
+
+            ; destruct stack frame
+            mov     esp, ebp
+            pop     ebp
+
+            ret

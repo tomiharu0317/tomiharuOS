@@ -23,9 +23,9 @@ kernel:
                 cdecl   draw_char, 1, 0, 0x010F, 'B'
                 cdecl   draw_char, 2, 0, 0x010F, 'C'
 
-                cdecl   draw_char, 0, 0, 0x010F, '0'
-                cdecl   draw_char, 1, 0, 0x010F, '1'
-                cdecl   draw_char, 2, 0, 0x010F, '-'
+                cdecl   draw_char, 0, 0, 0x0402, '0'
+                cdecl   draw_char, 1, 0, 0x0212, '1'
+                cdecl   draw_char, 2, 0, 0x0212, '_'
 
                 ; End of Process
                 jmp     $
