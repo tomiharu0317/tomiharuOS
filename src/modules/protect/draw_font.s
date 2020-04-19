@@ -1,8 +1,8 @@
 draw_font:
 
             ; construct stack frame
-            push    ebp                                         ;   +12 | column
-            mov     ebp, esp                                    ;EBP+ 8 | row
+            push    ebp                                         ;   +12 | row
+            mov     ebp, esp                                    ;EBP+ 8 | column
 
             ; save registers
             push    eax
