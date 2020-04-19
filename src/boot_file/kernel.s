@@ -1,4 +1,4 @@
-;マクロ
+;macro
 
 %include    "../include/define.s"
 %include    "../include/macro.s"
@@ -17,15 +17,6 @@ kernel:
                 shl     eax, 4
                 add     eax, ebx
                 mov     [FONT_ADR], eax                         ; FONT_ADR[0] = EAX
-
-                ; put char
-                cdecl   draw_char, 0, 0, 0x010F, 'A'
-                cdecl   draw_char, 1, 0, 0x010F, 'B'
-                cdecl   draw_char, 2, 0, 0x010F, 'C'
-
-                cdecl   draw_char, 0, 0, 0x0402, '0'
-                cdecl   draw_char, 1, 0, 0x0212, '1'
-                cdecl   draw_char, 2, 0, 0x0212, '_'
 
                 ; put char
                 cdecl   draw_font, 63, 13

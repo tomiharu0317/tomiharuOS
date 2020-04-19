@@ -1,37 +1,36 @@
 get_font_adr:
 
-            ;スタックフレームの構築
-            push    bp                                          ; BP+4 | フォントアドレスの格納位置
+            ; construct stack frame
+            push    bp                                          ; BP+4 | where font address is located
             mov     bp, sp
 
-            ;レジスタの保存
-
+            ; save registers
             push    ax
             push    bx
             push    si
             push    es
             push    bp
 
-            ;引数の取得
+            ; get argumentes
             mov     si, [bp + 4]
 
-            ;フォントアドレスの取得
+            ; get font address
             mov     ax, 0x1130
             mov     bh, 0x06                                    ;8 x 16 font(vga/mcga)
-            int     0x10                                        ;ES:BP = Font Address
+            int     10h                                         ;ES:BP = Font Address
 
-            ;フォントアドレスを保存
-            mov     [si + 0], es                                ;dest[0] = セグメント
-            mov     [si + 2], bx                                ;dest[1] = オフセット
+            ; save font address
+            mov     [si + 0], es                                ;dest[0] = segment
+            mov     [si + 2], bp                                ;dest[1] = offset
 
-            ;レジスタの復帰
+            ; return registers
             pop     bp
             pop     es
             pop     si
             pop     bx
             pop     ax
 
-            ;スタックフレームの破棄
+            ; destruct stack frame
             mov     sp, bp
             pop     bp
 
