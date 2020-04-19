@@ -113,3 +113,15 @@ vram_font_copy:
             add     edi, 80
             loop    .10L
 .10E:
+
+            ; return registers
+            pop     edx
+            pop     ecx
+            pop     ebx
+            pop     eax
+            pop     edi
+            pop     esi
+
+            ; destruct stack frame
+            mov     esp, ebp
+            pop     ebp
