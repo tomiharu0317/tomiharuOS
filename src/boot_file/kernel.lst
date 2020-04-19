@@ -1,4 +1,4 @@
-     1                                  ;マクロ
+     1                                  ;macro
      2                                  
      3                                  %include    "../include/define.s"
      1                              <1>         BOOT_SIZE       equ     (1024 * 8)                      ; boot size
