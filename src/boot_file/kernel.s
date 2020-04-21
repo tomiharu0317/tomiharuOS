@@ -25,28 +25,31 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
-                ; display line
-                cdecl   draw_line, 100, 100,   0,   0, 0x0F
-                cdecl   draw_line, 100, 100, 200,   0, 0x0F
-                cdecl   draw_line, 100, 100, 200, 200, 0x0F
-                cdecl   draw_line, 100, 100,   0, 200, 0x0F
+                ; ; display line
+                ; cdecl   draw_line, 100, 100,   0,   0, 0x0F
+                ; cdecl   draw_line, 100, 100, 200,   0, 0x0F
+                ; cdecl   draw_line, 100, 100, 200, 200, 0x0F
+                ; cdecl   draw_line, 100, 100,   0, 200, 0x0F
 
-                cdecl   draw_line, 100, 100,  50,   0, 0x02
-                cdecl   draw_line, 100, 100, 150,   0, 0x03
-                cdecl   draw_line, 100, 100, 150, 200, 0x04
-                cdecl   draw_line, 100, 100,  50, 200, 0x05
+                ; cdecl   draw_line, 100, 100,  50,   0, 0x02
+                ; cdecl   draw_line, 100, 100, 150,   0, 0x03
+                ; cdecl   draw_line, 100, 100, 150, 200, 0x04
+                ; cdecl   draw_line, 100, 100,  50, 200, 0x05
 
-                cdecl   draw_line, 100, 100,   0,  50, 0x02
-                cdecl   draw_line, 100, 100, 200,  50, 0x03
-                cdecl   draw_line, 100, 100, 200, 150, 0x04
-                cdecl   draw_line, 100, 100,   0, 150, 0x05
+                ; cdecl   draw_line, 100, 100,   0,  50, 0x02
+                ; cdecl   draw_line, 100, 100, 200,  50, 0x03
+                ; cdecl   draw_line, 100, 100, 200, 150, 0x04
+                ; cdecl   draw_line, 100, 100,   0, 150, 0x05
 
-                cdecl   draw_line, 100, 100, 100,   0, 0x0F
-                cdecl   draw_line, 100, 100, 200, 100, 0x0F
-                cdecl   draw_line, 100, 100, 100, 200, 0x0F
-                cdecl   draw_line, 100, 100,   0, 100, 0x0F
+                ; cdecl   draw_line, 100, 100, 100,   0, 0x0F
+                ; cdecl   draw_line, 100, 100, 200, 100, 0x0F
+                ; cdecl   draw_line, 100, 100, 100, 200, 0x0F
+                ; cdecl   draw_line, 100, 100,   0, 100, 0x0F
 
-
+                ; display rectangle
+                cdecl   draw_rect, 100, 100, 200, 200, 0x03
+                cdecl   draw_rect, 400, 250, 150, 150, 0x05
+                cdecl   draw_rect, 350, 400, 300, 100, 0x06
 
                 ; End of Process
                 jmp     $
@@ -65,6 +68,7 @@ FONT_ADR:   dd 0
 %include    "../modules/protect/draw_color_bar.s"
 %include    "../modules/protect/draw_pixel.s"
 %include    "../modules/protect/draw_line.s"
+%include    "../modules/protect/draw_rect.s"
 
 
                 ; Padding
