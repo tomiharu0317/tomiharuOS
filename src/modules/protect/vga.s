@@ -69,7 +69,7 @@ vram_font_copy:
             push    esi
             push    edi
 
-            ; main process
+            ; get arguments
             mov     esi, [ebp + 8]
             mov     edi, [ebp + 12]
             movzx   eax, byte [ebp + 16]                    ; EAX = color plane // zero expansion
@@ -117,6 +117,56 @@ vram_font_copy:
             add     edi, 80
             loop    .10L
 .10E:
+
+            ; return registers
+            pop     edi
+            pop     esi
+            pop     edx
+            pop     ecx
+            pop     ebx
+            pop     eax
+
+            ; destruct stack frame
+            mov     esp, ebp
+            pop     ebp
+
+            ret
+
+vram_bit_copy:
+
+            ; construct stack frame                         ;   +20 | display color
+            push    ebp                                     ;   +16 | color plane
+            mov     ebp, esp                                ;   +12 | VRAM address
+                                                            ;EBP+ 8 | bit data
+
+            ; save registers
+            push    eax
+            push    ebx
+            push    ecx
+            push    edx
+            push    esi
+            push    edi
+
+            ; get arguments
+            mov     edi, [ebp + 12]
+            movzx   eax, byte [ebp + 16]
+            movzx   ebx, word [ebp + 20]
+
+            ; make mask data(always transmissive mode => only foreground)
+
+            test    bl, al                                  ; ZF = (foreground color & color plane)
+            setz    dl                                      ; DH = 0x01 if (ZF == 1) else DH = 0x00
+            dec     dl                                      ; DH = 0x00 or 0xFF
+
+            mov     al, [ebp + 8]                           ; AL = output bit pattern
+            mov     ah, al
+            not     ah                                      ; AH = reversed bit data
+
+            ; drawing process
+            and     ah, [edi]                               ; AH = !output bit pattern & current val
+            and     al, bl                                  ; AL =  output bit pattern & display color
+            or      al, ah
+            mov     [edi], al
 
             ; return registers
             pop     edi
