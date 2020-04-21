@@ -54,7 +54,7 @@ draw_line:
             mov     ecx, [ebp + 12]                                 ; eax = y_start
             mov     edx, [ebp + 20]                                 ; ebx = y_end
             sub     edx, ecx                                        ; ebx = y_e - y_s //height
-            jge     .10F                                            ; if (height < 0){
+            jge     .20F                                            ; if (height < 0){
 
             neg     edx                                             ;   height *= -1
             mov     edi, -1                                         ;   // increment of y coordinate
@@ -66,7 +66,7 @@ draw_line:
             ; store the calculated value in local variables
 
             ; X axis
-            mov     [ebp - 8], eax                                  ; start coordinate
+            mov     [ebp -  8], eax                                  ; start coordinate
             mov     [ebp - 12], ebx                                 ; width
             mov     [ebp - 16], esi                                 ; increment(base axis: 1 or -1)
 
@@ -104,7 +104,7 @@ draw_line:
 
             ; draw line
 .50L:
-            cdecl   draw_pixel, dword [ebp - 8], \
+            cdecl   draw_pixel, dword [ebp -  8], \
                                 dword [ebp - 20], \
                                 dword [ebp + 24]
 
@@ -130,3 +130,17 @@ draw_line:
 
             loop    .50L
 .50E:
+
+            ; return registers
+            pop     edi
+            pop     esi
+            pop     edx
+            pop     ecx
+            pop     ebx
+            pop     eax
+
+            ; destruct stack frame
+            mov     esp, ebp
+            pop     ebp
+
+            ret
