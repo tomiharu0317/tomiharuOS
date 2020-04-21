@@ -77,12 +77,12 @@ vram_font_copy:
 
             ; make mask data
             test    bh, al                                  ; ZF = (background color & color plane)
-            setz    dh                                      ; DH = 0x01 if (ZF == 1) else DH = 0x00
-            dec     dh                                      ; DH = 0x00 or 0xFF
+            setz    dh                                      ; AH = 0x01 if (ZF == 1) else AH = 0x00
+            dec     dh                                      ; AH = 0x00 or 0xFF
 
             test    bl, al                                  ; ZF = (foreground color & color plane)
-            setz    dl                                      ; DH = 0x01 if (ZF == 1) else DH = 0x00
-            dec     dl                                      ; DH = 0x00 or 0xFF
+            setz    dl                                      ; AL = 0x01 if (ZF == 1) else AL = 0x00
+            dec     dl                                      ; AL = 0x00 or 0xFF
 
             ; copy 16 dot font
             cld                                             ; DF = 0 // plus
@@ -142,9 +142,9 @@ vram_bit_copy:
             ; save registers
             push    eax
             push    ebx
-            push    ecx
-            push    edx
-            push    esi
+            ; push    ecx
+            ; push    edx
+            ; push    esi
             push    edi
 
             ; get arguments
@@ -155,8 +155,8 @@ vram_bit_copy:
             ; make mask data(always transmissive mode => only foreground)
 
             test    bl, al                                  ; ZF = (foreground color & color plane)
-            setz    dl                                      ; DH = 0x01 if (ZF == 1) else DH = 0x00
-            dec     dl                                      ; DH = 0x00 or 0xFF
+            setz    bl                                      ; BL = 0x01 if (ZF == 1) else BL = 0x00
+            dec     bl                                      ; BL = 0x00 or 0xFF
 
             mov     al, [ebp + 8]                           ; AL = output bit pattern
             mov     ah, al
@@ -170,9 +170,9 @@ vram_bit_copy:
 
             ; return registers
             pop     edi
-            pop     esi
-            pop     edx
-            pop     ecx
+            ; pop     esi
+            ; pop     edx
+            ; pop     ecx
             pop     ebx
             pop     eax
 
