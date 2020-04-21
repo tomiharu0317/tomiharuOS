@@ -18,10 +18,11 @@ kernel:
                 add     eax, ebx
                 mov     [FONT_ADR], eax                         ; FONT_ADR[0] = EAX
 
-                ; put char
+                ; display font and color_bar
                 cdecl   draw_font, 63, 13
+                cdecl   draw_color_bar, 63, 4
 
-                ; put str
+                ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
                 ; End of Process
@@ -38,6 +39,7 @@ FONT_ADR:   dd 0
 %include    "../modules/protect/draw_char.s"
 %include    "../modules/protect/draw_font.s"
 %include    "../modules/protect/draw_str.s"
+%include    "../modules/protect/draw_color_bar.s"
 
                 ; Padding
 
