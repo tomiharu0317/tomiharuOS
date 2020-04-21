@@ -8,8 +8,8 @@ draw_pixel:
             push    eax
             push    ebx
             push    ecx
-            ; push    edx
-            ; push    esi
+            push    edx
+            push    esi
             push    edi
 
             ;
@@ -57,8 +57,8 @@ draw_pixel:
 
             ; return registers
             pop     edi
-            ; pop     esi
-            ; pop     edx
+            pop     esi
+            pop     edx
             pop     ecx
             pop     ebx
             pop     eax
