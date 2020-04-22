@@ -1,6 +1,6 @@
 int_to_str:
 
-        ;スタックフレームの構築
+        ;construct stack frame
 
         push    bp
         mov     bp, sp                          ;  +12|フラグ
