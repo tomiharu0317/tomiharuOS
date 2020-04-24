@@ -52,6 +52,7 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/draw_pixel.s"
 %include    "../modules/protect/draw_line.s"
 %include    "../modules/protect/draw_rect.s"
+%include    "../modules/protect/int_to_str.s"
 %include    "../modules/protect/rtc.s"
 %include    "../modules/protect/draw_time.s"
 

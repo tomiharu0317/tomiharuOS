@@ -59,11 +59,11 @@ int_to_str:
 
         ; ASCII conversion
 
-        mov     ebx, [bp + 10]                          ; ebx = radix
+        mov     ebx, [ebp + 20]                          ; ebx = radix
 
 .30L:                                                   ; do{
         mov     edx, 0
-        ediv     ebx                                    ;   edx = edx:eax % ebx;
+        div     ebx                                    ;   edx = edx:eax % ebx;
                                                         ;   eax = edx:eax / ebx;
 
         mov     esi, edx                                ;   //refer to coversion table
@@ -82,7 +82,7 @@ int_to_str:
         cmp     ecx, 0                                  ; if (esize)
 .40Q:   je      .40E                                    ; {
         mov     al, ' '                                 ;   AL = ' '; // padding with blanks
-        cmp     [bp + 12], word 0b0100                  ;   if (flags & 0x04)
+        cmp     [ebp + 24], word 0b0100                  ;   if (flags & 0x04)
 .42Q:   jne     .42E                                    ;   {
         mov     al, '0'                                 ;       AL = '0'; // padding with zero
 .42E:                                                   ;   }
@@ -101,8 +101,8 @@ int_to_str:
 
         ; destruct stack frame
 
-        mov     sp, bp
-        pop     bp
+        mov     esp, ebp
+        pop     ebp
 
         ret
 
