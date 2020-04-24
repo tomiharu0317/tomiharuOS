@@ -2,15 +2,15 @@ int_to_str:
 
         ;construct stack frame
 
-        push    bp
-        mov     bp, sp                          ;  +12|フラグ
-                                                ;  +10|基数
-                                                ;  + 8|保存先バッファサイズ
-                                                ;  + 6|保存先バッファアドレス
-                                                ;  + 4|変換する値
-                                                ;  + 2|IP(戻り番地)
-                                                ;BP+ 0|BP
-        ;レジスタの保存
+        push    ebp
+        mov     ebp, esp                                ;   +24|flag
+                                                        ;   +20|radix
+                                                        ;   +16|dest buffer size
+                                                        ;   +12|dest buffer address
+                                                        ;   + 8|the value to be converted
+                                                        ;   + 4|Instruction Pointer
+                                                        ;EBP+ 0|EBP
+        ; save registers
 
         push    eax
         push    ebx
@@ -19,79 +19,78 @@ int_to_str:
         push    esi
         push    edi
 
-        ;引数の取得
+        ; get args
 
-        mov     eax, [bp + 4]                    ;val = 数値
-        mov     esi, [bp + 6]                    ;dest= バッファアドレス
-        mov     ecx, [bp + 8]                    ;esize= バッファサイズ
+        mov     eax, [ebp +  8]                         ; val = value
+        mov     esi, [ebp + 12]                         ; dest= buffer address
+        mov     ecx, [ebp + 16]                         ; size= remaining buffer size
 
-        mov     edi, esi                          ;バッファの最後尾
-        add     edi, ecx                          ;dest = &dest[esize - 1]
+        mov     edi, esi                                ; end of buffer
+        add     edi, ecx                                ; dest = &dest[esize - 1]
         dec     edi
 
-        mov     ebx, word [bp + 12]              ;flags = フラグ
-                                                ;B2: 空白をゼロで埋める B1:+/-記号を付加する B0:値を符号付き変数として扱う
+        mov     ebx, [ebp + 24]
 
-        ;符号付き判定
+        ; signing judge
 
-        test    ebx, 0b0001                      ; if (flags & 0x01) //符号付きならZF = 0
-.10Q    je      .10E                            ; {                 //符号なしならZF = 1だからjmp
-        cmp     eax, 0                           ;   if (val < 0)    //CF = 1, ZF = 0
-.12Q    jge     .12E                            ;   {               //val >= 0 なら必要ないのでjmp
-        or      ebx, 0b0010                      ;       flags |= 2; //B1をセット
-                                                ;}}
+        test    ebx, 0b0001                             ; if (flags & 0x01) //if signed => ZF = 0
+.10Q    je      .10E                                    ; {                 //if not ZF = 1 so => jmp
+        cmp     eax, 0                                  ;   if (val < 0)    //CF = 1, ZF = 0
+.12Q    jge     .12E                                    ;   {
+        or      ebx, 0b0010                             ;       flags |= 2; //set B1
+                                                        ; }}
 .12E:
 .10E:
 
-        ;符号出力判定
+        ; sign output judge
 
         test    ebx, 0b0010
 .20Q    je      .20E
         cmp     eax, 0
 .22Q    jge     .22F
-        neg     eax                              ;符号反転
-        mov     [esi], byte '-'                  ;符号表示
+        neg     eax                                     ; sign reverse
+        mov     [esi], byte '-'                         ; sign display
         jmp     .22E
 .22F:
         mov     [esi], byte '+'
 .22E:
-        dec     ecx                              ;残りバッファサイズの減算 -> ?
+        dec     ecx                                     ; subtract remaining buffer size -> ?
 .20E:
 
-        ;ASCII変換
+        ; ASCII conversion
 
-        mov     ebx, [bp + 10]                   ;ebx = 基数
+        mov     ebx, [bp + 10]                          ; ebx = radix
 
-.30L:                                           ;do{
+.30L:                                                   ; do{
         mov     edx, 0
-        ediv     ebx                              ;   edx = edx:eax % ebx;
-                                                ;   eax = edx:eax / ebx;
+        ediv     ebx                                    ;   edx = edx:eax % ebx;
+                                                        ;   eax = edx:eax / ebx;
 
-        mov     esi, edx                          ;   //変換テーブル参照
-        mov     dl, byte [.ascii + esi]          ;   DL = ASCII[edx];
+        mov     esi, edx                                ;   //refer to coversion table
+        mov     dl, byte [.ascii + esi]                 ;   DL = ASCII[edx];
 
-        mov     [edi], dl                        ;   *dest = DL;
-        dec     edi                              ;   dest--;
+        mov     [edi], dl                               ;   *dest = DL;
+        dec     edi                                     ;   dest--;
 
-        cmp     eax, 0
-        loopnz  .30L                            ;} while(eax);
+        cmp     eax, 0  
+        loopnz  .30L                                    ; } while(eax);
 
 .30E:
 
-        ;空欄をゼロ埋め/空白埋め
+        ; padding (zero / blank)
 
-        cmp     ecx, 0                           ;if (esize)
-.40Q:   je      .40E                            ;{
-        mov     al, ' '                         ;   AL = ' '; //空白埋め
-        cmp     [bp + 12], word 0b0100          ;   if (flags & 0x04)
-.42Q:   jne     .42E                            ;   {
-        mov     al, '0'                         ;       AL = '0'; //ゼロ埋め
-.42E:                                           ;   }
-        std                                     ;   // DF = 1(減算)
-        rep stosb                               ;   while (--ecx) * edi-- = ' ';
-.40E:                                           ;}
+        cmp     ecx, 0                                  ; if (esize)
+.40Q:   je      .40E                                    ; {
+        mov     al, ' '                                 ;   AL = ' '; // padding with blanks
+        cmp     [bp + 12], word 0b0100                  ;   if (flags & 0x04)
+.42Q:   jne     .42E                                    ;   {
+        mov     al, '0'                                 ;       AL = '0'; // padding with zero
+.42E:                                                   ;   }
+        std                                             ;   // DF = 1(dec)
+        rep stosb                                       ;   while (--ecx) * edi-- = ' ';
+.40E:                                                   ; }
 
-        ;レジスタの復帰
+        ; return registers
 
         pop     edi
         pop     esi
@@ -100,7 +99,7 @@ int_to_str:
         pop     ebx
         pop     eax
 
-        ;スタックフレームの破棄
+        ; destruct stack frame
 
         mov     sp, bp
         pop     bp
@@ -108,4 +107,4 @@ int_to_str:
         ret
 
 
-.ascii  db      "0123456789ABCDEF"              ;変換テーブル0
+.ascii  db      "0123456789ABCDEF"                      ; conversion table

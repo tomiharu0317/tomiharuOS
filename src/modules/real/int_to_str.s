@@ -10,8 +10,7 @@ int_to_str:
                                                 ;  + 4|変換する値
                                                 ;  + 2|IP(戻り番地)
                                                 ;BP+ 0|BP
-        ;レジスタの保存
-
+        ; save registers
         push    ax
         push    bx
         push    cx
@@ -19,7 +18,7 @@ int_to_str:
         push    si
         push    di
 
-        ;引数の取得
+        ; get args
 
         mov     ax, [bp + 4]                    ;val = 数値
         mov     si, [bp + 6]                    ;dest= バッファアドレス
