@@ -26,7 +26,11 @@ kernel:
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
                 ; display time
+.10L:
+                cdecl   rtc_get_time, RTC_TIME
+                cdecl   draw_time, 72, 0, 0x0700, dword [RTC_TIME]
 
+                jmp     .10L
 
 
                 ; End of Process
@@ -36,6 +40,7 @@ kernel:
 
 ALIGN 4, db 0
 FONT_ADR:   dd 0
+RTC_TIME:   dd 0
 
 
 ; modules
@@ -47,6 +52,9 @@ FONT_ADR:   dd 0
 %include    "../modules/protect/draw_pixel.s"
 %include    "../modules/protect/draw_line.s"
 %include    "../modules/protect/draw_rect.s"
+%include    "../modules/protect/rtc.s"
+%include    "../modules/protect/draw_time.s"
+
 
 
                 ; Padding

@@ -1,4 +1,4 @@
-rtc:
+rtc_get_time:
 
             ; construct stack frame
             push    ebp                                     ; EBP+8 | destination
