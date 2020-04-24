@@ -36,4 +36,4 @@ draw_time:
 
 .hour:  db  "ZZ:"
 .min:  db  "ZZ:"
-.sec:  db  "ZZ:", 0
+.sec:  db  "ZZ", 0
