@@ -72,7 +72,7 @@ int_to_str:
         mov     [edi], dl                               ;   *dest = DL;
         dec     edi                                     ;   dest--;
 
-        cmp     eax, 0  
+        cmp     eax, 0
         loopnz  .30L                                    ; } while(eax);
 
 .30E:
