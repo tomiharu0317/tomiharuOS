@@ -22,6 +22,7 @@ init_int:
 
             mov     ecx, 256                                        ; num of Interrupt Gate Descriptor
             mov     edi, VECT_BASE                                  ; base address of Interrupt Descriptor Table
+
 .10L:
             mov     [edi + 0], ebx                                  ; interrupt descriptor(lower)
             mov     [edi + 4], eax                                  ; interrupt descriptor(upper)
@@ -32,8 +33,8 @@ init_int:
             lidt    [IDTR]
 
             ; return registers
-            push    edi
-            push    ecx
+            pop     edi
+            pop     ecx
             pop     ebx
             pop     eax
 
