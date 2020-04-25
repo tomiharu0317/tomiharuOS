@@ -87,4 +87,14 @@ int_stop:
 .s4         db  "   +12:"
 .p4         db  "________ ", 0
 
+int_zero_div:
+            pushf                                                   ; EFLAGS
+            push    cs                                              ; CS
+            push    int_stop                                        ; the process of displaying stack
+
+            mov     eax, .s0                                        ; interrupt type
+            iret
+
+.s0         db  " <  ZERO DIV  > ", 0
+
 
