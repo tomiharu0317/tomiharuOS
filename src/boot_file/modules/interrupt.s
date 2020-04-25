@@ -39,18 +39,6 @@ init_int:
 
             ret
 
-VECT_BASE   equ     0x0010_0000                                     ; 0010_0000 ~ 0010_07FF
-
-int_default:
-            pushf                                                   ; EFLAGS
-            push    cs                                              ; CS
-            push    int_stop                                        ; the process of displaying stack
-
-            mov     eax, .s0                                        ; interrupt type
-            iret
-
-.s0         db  " <    STOP    > ", 0
-
 int_stop:
 
             ; display the string indicated in EAX
@@ -86,6 +74,16 @@ int_stop:
 .p3         db  "________ ", 0
 .s4         db  "   +12:"
 .p4         db  "________ ", 0
+
+int_default:
+            pushf                                                   ; EFLAGS
+            push    cs                                              ; CS
+            push    int_stop                                        ; the process of displaying stack
+
+            mov     eax, .s0                                        ; interrupt type
+            iret
+
+.s0         db  " <    STOP    > ", 0
 
 int_zero_div:
             pushf                                                   ; EFLAGS
