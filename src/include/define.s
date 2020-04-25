@@ -12,3 +12,5 @@
         KERNEL_SECT     equ     (KERNEL_SIZE / SECT_SIZE)
 
         E820_RECORD_SIZE        equ     20
+
+        VECT_BASE   equ     0x0010_0000                                     ; 0010_0000 ~ 0010_07FF
