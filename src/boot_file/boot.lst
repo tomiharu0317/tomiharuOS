@@ -1279,8 +1279,8 @@
    388 00000A1B FC                              cld                                             ; DF => +
    389 00000A1C F3A5                            rep     movsd                                   ; while(--ECX) *EDI++ = *ESI++;
    390                                  
-   391                                          ; migrate to Kernel Process
+   391                                          ; jump to Kernel Process
    392 00000A1E E9(00101000)                    jmp     KERNEL_LOAD
    393                                  
    394                                          ; Padding
-   395 00000A23 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
+   395 00000A23 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte

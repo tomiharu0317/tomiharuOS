@@ -1,3 +1,13 @@
+int_default:
+            pushf                                                   ; EFLAGS
+            push    cs                                              ; CS
+            push    int_stop                                        ; the process of displaying stack
+
+            mov     eax, .s0                                        ; interrupt type
+            iret
+
+.s0         db  " <    STOP    > ", 0
+
 int_stop:
 
             ; display the string indicated in EAX
@@ -26,12 +36,12 @@ int_stop:
             jmp     $
 
 .s1         db  "ESP+ 0:"
-.p1         db  "-------- ", 0
+.p1         db  "________ ", 0
 .s2         db  "   + 4:"
-.p2         db  "-------- ", 0
+.p2         db  "________ ", 0
 .s3         db  "   + 8:"
-.p3         db  "-------- ", 0
+.p3         db  "________ ", 0
 .s4         db  "   +12:"
-.p4         db  "-------- ", 0
+.p4         db  "________ ", 0
 
 

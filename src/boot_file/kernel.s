@@ -25,13 +25,17 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
+                ; test interrupting
+                push    0x11223344                              ; dummy
+                pushf                                           ; save EFLAGS
+                call    0x0008:int_default                      ; call default interrupt process                                                               ; // 0x0008 : code segment descriptor for kernel
+
                 ; display time
 .10L:
                 cdecl   rtc_get_time, RTC_TIME
                 cdecl   draw_time, 72, 0, 0x0700, dword [RTC_TIME]
 
                 jmp     .10L
-
 
                 ; End of Process
                 jmp     $
@@ -55,6 +59,7 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_to_str.s"
 %include    "../modules/protect/rtc.s"
 %include    "../modules/protect/draw_time.s"
+%include    "modules/interrupt.s"
 
 
 
