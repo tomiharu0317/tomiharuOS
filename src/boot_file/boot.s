@@ -388,8 +388,8 @@ CODE_32:
         cld                                             ; DF => +
         rep     movsd                                   ; while(--ECX) *EDI++ = *ESI++;
 
-        ; migrate to Kernel Process
+        ; jump to Kernel Process
         jmp     KERNEL_LOAD
 
         ; Padding
-        times   BOOT_SIZE - ($ - $$)       db  0        ;8Kバイト
+        times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte
