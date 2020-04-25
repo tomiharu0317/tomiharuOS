@@ -18,6 +18,11 @@ kernel:
                 add     eax, ebx
                 mov     [FONT_ADR], eax                         ; FONT_ADR[0] = EAX
 
+                ; initialize interrupt vector
+                cdecl   init_int
+
+                set_vect    0x00, int_zero_div                  ; define interrupt process: zero div
+
                 ; display font and color_bar
                 cdecl   draw_font, 63, 13
                 cdecl   draw_color_bar, 63, 4
@@ -25,10 +30,9 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
-                ; test interrupting
-                push    0x11223344                              ; dummy
-                pushf                                           ; save EFLAGS
-                call    0x0008:int_default                      ; call default interrupt process                                                               ; // 0x0008 : code segment descriptor for kernel
+                ; zero div test
+                mov     al, 0
+                div     al
 
                 ; display time
 .10L:
