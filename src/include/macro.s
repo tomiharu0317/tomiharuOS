@@ -21,6 +21,10 @@
         mov     edi, VECT_BASE + (%1 * 8)   ; vector address
         mov     eax, %2
 
+    %if 3 == %0
+        mov     [edi + 4], %3               ; flag
+    %endif
+
         mov     [edi + 0], ax               ; exception address[15:0]
         shr     eax, 16
         mov     [edi + 6], ax               ; exception address[31:16]
