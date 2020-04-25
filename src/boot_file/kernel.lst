@@ -68,7 +68,7 @@
     28                                                  ; test interrupting
     29 00000047 6844332211                              push    0x11223344                              ; dummy
     30 0000004C 9C                                      pushf                                           ; save EFLAGS
-    31 0000004D 9A[35060000]0800                        call    0x0008:int_default                      ; call default interrupt process                                                               ; // 0x0008 : code segment descriptor for kernel
+    31 0000004D 9A[6F060000]0800                        call    0x0008:int_default                      ; call default interrupt process                                                               ; // 0x0008 : code segment descriptor for kernel
     32                                  
     33                                                  ; display time
     34                                  .10L:
@@ -1038,79 +1038,122 @@
     38 0000062F 5A5A3A              <1> .min:  db  "ZZ:"
     39 00000632 5A5A00              <1> .sec:  db  "ZZ", 0
     62                                  %include    "modules/interrupt.s"
-     1                              <1> int_default:
-     2 00000635 9C                  <1>             pushf                                                   ; EFLAGS
-     3 00000636 0E                  <1>             push    cs                                              ; CS
-     4 00000637 68[53060000]        <1>             push    int_stop                                        ; the process of displaying stack
-     5                              <1> 
-     6 0000063C B8[42060000]        <1>             mov     eax, .s0                                        ; interrupt type
-     7 00000641 CF                  <1>             iret
+     1                              <1> ; Initialize vector of IDTR
+     2                              <1> 
+     3 00000635 90<rept>            <1> ALIGN 4
+     4 00000638 FF07                <1> IDTR:       dw      8 * 256 - 1                                     ; limit of IDT
+     5 0000063A 00001000            <1>             dd      VECT_BASE                                       ; base address of IDT
+     6                              <1> 
+     7                              <1> ; Initialize IDT
      8                              <1> 
-     9 00000642 203C2020202053544F- <1> .s0         db  " <    STOP    > ", 0
-     9 0000064B 50202020203E2000    <1>
+     9                              <1> init_int:
     10                              <1> 
-    11                              <1> int_stop:
-    12                              <1> 
-    13                              <1>             ; display the string indicated in EAX
-    14 00000653 50680F0600006A0F6A- <1>             cdecl   draw_str, 25, 15, 0x060F, eax
-    14 0000065C 19E8ECFBFFFF6683C4- <1>
-    14 00000665 10                  <1>
-    15                              <1> 
-    16                              <1>             ; convert stack data into string
-    17 00000666 8B0424              <1>             mov     eax, [esp + 0]                                  ; EIP
-    18 00000669 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p1, 8, 16, 0b0100
-    18 00000670 [2E070000]50E87AFE- <1>
-    18 00000678 FFFF6683C414        <1>
-    19                              <1> 
-    20 0000067E 8B442404            <1>             mov     eax, [esp + 4]                                  ; CS
-    21 00000682 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p2, 8, 16, 0b0100
-    21 00000689 [3F070000]50E861FE- <1>
-    21 00000691 FFFF6683C414        <1>
+    11                              <1>             ; save registers
+    12 0000063E 50                  <1>             push    eax
+    13 0000063F 53                  <1>             push    ebx
+    14 00000640 51                  <1>             push    ecx
+    15 00000641 57                  <1>             push    edi
+    16                              <1> 
+    17                              <1>             ; define Interrupt Gate Descriptor and apply default process to them
+    18                              <1> 
+    19 00000642 8D05[6F060000]      <1>             lea     eax, [int_default]                              ; EAX = the address of interrupt process
+    20 00000648 BB008E0800          <1>             mov     ebx, 0x0008_8E00                                ; EBX = segment selector & P,DPL,DT,TYPE
+    21 0000064D 6693                <1>             xchg    ax, bx                                          ; exchange lower word
     22                              <1> 
-    23 00000697 8B442408            <1>             mov     eax, [esp + 8]                                  ; EFLAGS
-    24 0000069B 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p3, 8, 16, 0b0100
-    24 000006A2 [50070000]50E848FE- <1>
-    24 000006AA FFFF6683C414        <1>
-    25                              <1> 
-    26 000006B0 8B44240C            <1>             mov     eax, [esp + 12]
-    27 000006B4 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p4, 8, 16, 0b0100
-    27 000006BB [61070000]50E82FFE- <1>
-    27 000006C3 FFFF6683C414        <1>
-    28                              <1> 
-    29                              <1>             ; display string
-    30 000006C9 68[27070000]68040F- <1>             cdecl   draw_str, 25, 16, 0x0F04, .s1
-    30 000006D1 00006A106A19E872FB- <1>
-    30 000006DA FFFF6683C410        <1>
-    31 000006E0 68[38070000]68040F- <1>             cdecl   draw_str, 25, 17, 0x0F04, .s2
-    31 000006E8 00006A116A19E85BFB- <1>
-    31 000006F1 FFFF6683C410        <1>
-    32 000006F7 68[49070000]68040F- <1>             cdecl   draw_str, 25, 18, 0x0F04, .s3
-    32 000006FF 00006A126A19E844FB- <1>
-    32 00000708 FFFF6683C410        <1>
-    33 0000070E 68[5A070000]68040F- <1>             cdecl   draw_str, 25, 19, 0x0F04, .s4
-    33 00000716 00006A136A19E82DFB- <1>
-    33 0000071F FFFF6683C410        <1>
-    34                              <1> 
-    35                              <1>             ; infinite loop
-    36 00000725 EBFE                <1>             jmp     $
-    37                              <1> 
-    38 00000727 4553502B20303A      <1> .s1         db  "ESP+ 0:"
-    39 0000072E 5F5F5F5F5F5F5F5F20- <1> .p1         db  "________ ", 0
-    39 00000737 00                  <1>
-    40 00000738 2020202B20343A      <1> .s2         db  "   + 4:"
-    41 0000073F 5F5F5F5F5F5F5F5F20- <1> .p2         db  "________ ", 0
-    41 00000748 00                  <1>
-    42 00000749 2020202B20383A      <1> .s3         db  "   + 8:"
-    43 00000750 5F5F5F5F5F5F5F5F20- <1> .p3         db  "________ ", 0
-    43 00000759 00                  <1>
-    44 0000075A 2020202B31323A      <1> .s4         db  "   +12:"
-    45 00000761 5F5F5F5F5F5F5F5F20- <1> .p4         db  "________ ", 0
-    45 0000076A 00                  <1>
-    46                              <1> 
-    47                              <1> 
+    23 0000064F B900010000          <1>             mov     ecx, 256                                        ; num of Interrupt Gate Descriptor
+    24 00000654 BF00001000          <1>             mov     edi, VECT_BASE                                  ; base address of Interrupt Descriptor Table
+    25                              <1> .10L:
+    26 00000659 891F                <1>             mov     [edi + 0], ebx                                  ; interrupt descriptor(lower)
+    27 0000065B 894704              <1>             mov     [edi + 4], eax                                  ; interrupt descriptor(upper)
+    28 0000065E 83C708              <1>             add     edi, 8                                          ; EDI += 8 byte
+    29 00000661 E2F6                <1>             loop    .10L
+    30                              <1> 
+    31                              <1>             ; set up Interrupt Descriptor
+    32 00000663 0F011D[38060000]    <1>             lidt    [IDTR]
+    33                              <1> 
+    34                              <1>             ; return registers
+    35 0000066A 57                  <1>             push    edi
+    36 0000066B 51                  <1>             push    ecx
+    37 0000066C 5B                  <1>             pop     ebx
+    38 0000066D 58                  <1>             pop     eax
+    39                              <1> 
+    40 0000066E C3                  <1>             ret
+    41                              <1> 
+    42                              <1> VECT_BASE   equ     0x0010_0000                                     ; 0010_0000 ~ 0010_07FF
+    43                              <1> 
+    44                              <1> int_default:
+    45 0000066F 9C                  <1>             pushf                                                   ; EFLAGS
+    46 00000670 0E                  <1>             push    cs                                              ; CS
+    47 00000671 68[8D060000]        <1>             push    int_stop                                        ; the process of displaying stack
+    48                              <1> 
+    49 00000676 B8[7C060000]        <1>             mov     eax, .s0                                        ; interrupt type
+    50 0000067B CF                  <1>             iret
+    51                              <1> 
+    52 0000067C 203C2020202053544F- <1> .s0         db  " <    STOP    > ", 0
+    52 00000685 50202020203E2000    <1>
+    53                              <1> 
+    54                              <1> int_stop:
+    55                              <1> 
+    56                              <1>             ; display the string indicated in EAX
+    57 0000068D 50680F0600006A0F6A- <1>             cdecl   draw_str, 25, 15, 0x060F, eax
+    57 00000696 19E8B2FBFFFF6683C4- <1>
+    57 0000069F 10                  <1>
+    58                              <1> 
+    59                              <1>             ; convert stack data into string
+    60 000006A0 8B0424              <1>             mov     eax, [esp + 0]                                  ; EIP
+    61 000006A3 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p1, 8, 16, 0b0100
+    61 000006AA [68070000]50E840FE- <1>
+    61 000006B2 FFFF6683C414        <1>
+    62                              <1> 
+    63 000006B8 8B442404            <1>             mov     eax, [esp + 4]                                  ; CS
+    64 000006BC 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p2, 8, 16, 0b0100
+    64 000006C3 [79070000]50E827FE- <1>
+    64 000006CB FFFF6683C414        <1>
+    65                              <1> 
+    66 000006D1 8B442408            <1>             mov     eax, [esp + 8]                                  ; EFLAGS
+    67 000006D5 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p3, 8, 16, 0b0100
+    67 000006DC [8A070000]50E80EFE- <1>
+    67 000006E4 FFFF6683C414        <1>
+    68                              <1> 
+    69 000006EA 8B44240C            <1>             mov     eax, [esp + 12]
+    70 000006EE 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p4, 8, 16, 0b0100
+    70 000006F5 [9B070000]50E8F5FD- <1>
+    70 000006FD FFFF6683C414        <1>
+    71                              <1> 
+    72                              <1>             ; display string
+    73 00000703 68[61070000]68040F- <1>             cdecl   draw_str, 25, 16, 0x0F04, .s1
+    73 0000070B 00006A106A19E838FB- <1>
+    73 00000714 FFFF6683C410        <1>
+    74 0000071A 68[72070000]68040F- <1>             cdecl   draw_str, 25, 17, 0x0F04, .s2
+    74 00000722 00006A116A19E821FB- <1>
+    74 0000072B FFFF6683C410        <1>
+    75 00000731 68[83070000]68040F- <1>             cdecl   draw_str, 25, 18, 0x0F04, .s3
+    75 00000739 00006A126A19E80AFB- <1>
+    75 00000742 FFFF6683C410        <1>
+    76 00000748 68[94070000]68040F- <1>             cdecl   draw_str, 25, 19, 0x0F04, .s4
+    76 00000750 00006A136A19E8F3FA- <1>
+    76 00000759 FFFF6683C410        <1>
+    77                              <1> 
+    78                              <1>             ; infinite loop
+    79 0000075F EBFE                <1>             jmp     $
+    80                              <1> 
+    81 00000761 4553502B20303A      <1> .s1         db  "ESP+ 0:"
+    82 00000768 5F5F5F5F5F5F5F5F20- <1> .p1         db  "________ ", 0
+    82 00000771 00                  <1>
+    83 00000772 2020202B20343A      <1> .s2         db  "   + 4:"
+    84 00000779 5F5F5F5F5F5F5F5F20- <1> .p2         db  "________ ", 0
+    84 00000782 00                  <1>
+    85 00000783 2020202B20383A      <1> .s3         db  "   + 8:"
+    86 0000078A 5F5F5F5F5F5F5F5F20- <1> .p3         db  "________ ", 0
+    86 00000793 00                  <1>
+    87 00000794 2020202B31323A      <1> .s4         db  "   +12:"
+    88 0000079B 5F5F5F5F5F5F5F5F20- <1> .p4         db  "________ ", 0
+    88 000007A4 00                  <1>
+    89                              <1> 
+    90                              <1> 
     63                                  
     64                                  
     65                                  
     66                                                  ; Padding
     67                                  
-    68 0000076B 00<rept>                                times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte
+    68 000007A5 00<rept>                                times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte

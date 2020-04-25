@@ -1236,12 +1236,12 @@
    345                                  ; GDT
    346                                  
    347 000009D4 1700                    GDTR:   dw      GDT.gdt_end - GDT - 1                   ; limit of descriptor table
-   348 000009D6 [BC090000]                      dd      GDT                                     ; address of descriptor table
+   348 000009D6 [BC090000]                      dd      GDT                                     ; base address of descriptor table
    349                                  
    350                                  ; IDT
    351                                  
    352 000009DA 0000                    IDTR:   dw      0                                       ; limit of interrupt descriptor table
-   353 000009DC 00000000                        dd      0                                       ; address of interrupt descriptor table
+   353 000009DC 00000000                        dd      0                                       ; base address of interrupt descriptor table
    354                                  
    355                                  
    356                                  stage_7:

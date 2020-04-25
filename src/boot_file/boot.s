@@ -345,12 +345,12 @@ SEL_DATA        equ GDT.ds - GDT                        ; selector for data
 ; GDT
 
 GDTR:   dw      GDT.gdt_end - GDT - 1                   ; limit of descriptor table
-        dd      GDT                                     ; address of descriptor table
+        dd      GDT                                     ; base address of descriptor table
 
 ; IDT
 
 IDTR:   dw      0                                       ; limit of interrupt descriptor table
-        dd      0                                       ; address of interrupt descriptor table
+        dd      0                                       ; base address of interrupt descriptor table
 
 
 stage_7:

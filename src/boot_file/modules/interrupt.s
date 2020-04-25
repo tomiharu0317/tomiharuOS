@@ -1,3 +1,46 @@
+; Initialize vector of IDTR
+
+ALIGN 4
+IDTR:       dw      8 * 256 - 1                                     ; limit of IDT
+            dd      VECT_BASE                                       ; base address of IDT
+
+; Initialize IDT
+
+init_int:
+
+            ; save registers
+            push    eax
+            push    ebx
+            push    ecx
+            push    edi
+
+            ; define Interrupt Gate Descriptor and apply default process to them
+
+            lea     eax, [int_default]                              ; EAX = the address of interrupt process
+            mov     ebx, 0x0008_8E00                                ; EBX = segment selector & P,DPL,DT,TYPE
+            xchg    ax, bx                                          ; exchange lower word
+
+            mov     ecx, 256                                        ; num of Interrupt Gate Descriptor
+            mov     edi, VECT_BASE                                  ; base address of Interrupt Descriptor Table
+.10L:
+            mov     [edi + 0], ebx                                  ; interrupt descriptor(lower)
+            mov     [edi + 4], eax                                  ; interrupt descriptor(upper)
+            add     edi, 8                                          ; EDI += 8 byte
+            loop    .10L
+
+            ; set up Interrupt Descriptor
+            lidt    [IDTR]
+
+            ; return registers
+            push    edi
+            push    ecx
+            pop     ebx
+            pop     eax
+
+            ret
+
+VECT_BASE   equ     0x0010_0000                                     ; 0010_0000 ~ 0010_07FF
+
 int_default:
             pushf                                                   ; EFLAGS
             push    cs                                              ; CS
