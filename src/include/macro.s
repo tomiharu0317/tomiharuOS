@@ -14,9 +14,24 @@
 
 %endmacro
 
-struc   drive                               ;セクタ読み出し時のパラメータを構造体で定義
-            .no         resw    1           ;ドライブ番号
-            .cyln       resw    1           ;シリンダ
-            .head       resw    1           ;ヘッド
-            .sect       resw    1           ;セクタ
+%macro  set_vect 1-*
+        push    eax
+        push    edi
+
+        mov     edi, VECT_BASE + (%1 * 8)   ; vector address
+        mov     eax, %2
+
+        mov     [edi + 0], ax               ; exception address[15:0]
+        shr     eax, 16
+        mov     [edi + 6], ax               ; exception address[31:16]
+
+        pop     edi
+        pop     eax
+%endmacro
+
+struc   drive                               ; define parameters by structure when reading sector
+            .no         resw    1           ; drive no.
+            .cyln       resw    1           ; cylinder
+            .head       resw    1           ; head
+            .sect       resw    1           ; sector
 endstruc
