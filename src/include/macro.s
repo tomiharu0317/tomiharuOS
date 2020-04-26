@@ -44,3 +44,12 @@ struc   drive                               ; define parameters by structure whe
             .head       resw    1           ; head
             .sect       resw    1           ; sector
 endstruc
+
+%define     RING_ITEM_SIZE      (1 << 4)
+%define     RING_INDEX_MASK     (RING_ITEM_SIZE - 1)
+
+struc   ring_buff
+            .rp         resd    1                       ; RP: Reading Position
+            .wp         resd    1                       ; WP: Writing Position
+            .item       resb    RING_ITEM_SIZE          ; buffer
+endstruc
