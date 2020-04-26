@@ -31,6 +31,8 @@ kernel:
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
                 ; zero div test
+                int     0
+
                 mov     al, 0
                 div     al
 
