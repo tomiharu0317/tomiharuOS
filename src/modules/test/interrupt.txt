@@ -2,3 +2,9 @@
                 push    0x11223344                              ; dummy
                 pushf                                           ; save EFLAGS
                 call    0x0008:int_default                      ; call default interrupt process                                                               ; // 0x0008 : code segment descriptor for kernel
+
+                ; zero div test
+                int     0
+
+                mov     al, 0
+                div     al
