@@ -20,9 +20,20 @@ kernel:
 
                 ; initialize interrupt vector
                 cdecl   init_int
+                cdecl   init_pic
 
                 set_vect    0x00, int_zero_div                  ; define interrupt process: zero div
                 set_vect    0x28, int_rtc                       ; define interrupt process: RTC
+
+                ; permit interrupt by device
+                cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
+
+                ; set up IMR(Interrupt Mask Register)
+                outp    0x21, 0b1111_1011                       ; interrupt enable: slave PIC // master
+                outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC       // slave
+
+                ; CPU interrupt enable
+                sti
 
                 ; display font and color_bar
                 cdecl   draw_font, 63, 13
@@ -31,16 +42,10 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
-                ; zero div test
-                int     0
-
-                mov     al, 0
-                div     al
-
                 ; display time
 .10L:
-                cdecl   rtc_get_time, RTC_TIME
-                cdecl   draw_time, 72, 0, 0x0700, dword [RTC_TIME]
+                mov     eax, [RTC_TIME]
+                cdecl   draw_time, 72, 0, 0x0700, eax
 
                 jmp     .10L
 
@@ -66,7 +71,10 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_to_str.s"
 %include    "../modules/protect/rtc.s"
 %include    "../modules/protect/draw_time.s"
-%include    "modules/interrupt.s"
+%include    "../modules/protect/interrupt.s"
+%include    "../modules/protect/pic.s"
+%include    "../modules/protect/int_rtc.s"
+
 
 
 
