@@ -53,12 +53,17 @@
     33                              <1>         pop     eax
     34                              <1> %endmacro
     35                              <1> 
-    36                              <1> struc   drive                               ; define parameters by structure when reading sector
-    37 00000000 <res 00000002>      <1>             .no         resw    1           ; drive no.
-    38 00000002 <res 00000002>      <1>             .cyln       resw    1           ; cylinder
-    39 00000004 <res 00000002>      <1>             .head       resw    1           ; head
-    40 00000006 <res 00000002>      <1>             .sect       resw    1           ; sector
-    41                              <1> endstruc
+    36                              <1> %macro  outp 2
+    37                              <1>         mov     al, %2
+    38                              <1>         out     %1, al
+    39                              <1> %endmacro
+    40                              <1> 
+    41                              <1> struc   drive                               ; define parameters by structure when reading sector
+    42 00000000 <res 00000002>      <1>             .no         resw    1           ; drive no.
+    43 00000002 <res 00000002>      <1>             .cyln       resw    1           ; cylinder
+    44 00000004 <res 00000002>      <1>             .head       resw    1           ; head
+    45 00000006 <res 00000002>      <1>             .sect       resw    1           ; sector
+    46                              <1> endstruc
      5                                  
      6                                          ORG     BOOT_LOAD
      7                                  
