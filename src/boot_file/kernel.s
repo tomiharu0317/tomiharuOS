@@ -22,6 +22,7 @@ kernel:
                 cdecl   init_int
 
                 set_vect    0x00, int_zero_div                  ; define interrupt process: zero div
+                set_vect    0x28, int_rtc                       ; define interrupt process: RTC
 
                 ; display font and color_bar
                 cdecl   draw_font, 63, 13
