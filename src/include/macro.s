@@ -51,5 +51,5 @@ endstruc
 struc   ring_buff
             .rp         resd    1                       ; RP: Reading Position
             .wp         resd    1                       ; WP: Writing Position
-            .item       resb    RING_ITEM_SIZE          ; buffer
+            .item       resb    RING_ITEM_SIZE          ; buffer // unit:byte
 endstruc
