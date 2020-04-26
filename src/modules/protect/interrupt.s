@@ -42,6 +42,8 @@ init_int:
 
 int_stop:
 
+            sti                                                     ; interrupt enable
+
             ; display the string indicated in EAX
             cdecl   draw_str, 25, 15, 0x060F, eax
 

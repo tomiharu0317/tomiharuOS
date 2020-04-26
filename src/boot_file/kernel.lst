@@ -82,14 +82,14 @@
     20                                  
     21                                                  ; initialize interrupt vector
     22 00000016 E857060000                              cdecl   init_int
-    23 0000001B E8D7070000                              cdecl   init_pic
+    23 0000001B E8D8070000                              cdecl   init_pic
     24                                  
     25                                                  set_vect    0x00, int_zero_div                  ; define interrupt process: zero div
     25 00000020 50                  <1>  push eax
     25 00000021 57                  <1>  push edi
     25                              <1> 
     25 00000022 BF00001000          <1>  mov edi, VECT_BASE + (%1 * 8)
-    25 00000027 B8[D9070000]        <1>  mov eax, %2
+    25 00000027 B8[DA070000]        <1>  mov eax, %2
     25                              <1> 
     25                              <1>  %if 3 == %0
     25                              <1>  mov [edi + 4], %3
@@ -106,7 +106,7 @@
     26 00000039 57                  <1>  push edi
     26                              <1> 
     26 0000003A BF40011000          <1>  mov edi, VECT_BASE + (%1 * 8)
-    26 0000003F B8[22080000]        <1>  mov eax, %2
+    26 0000003F B8[23080000]        <1>  mov eax, %2
     26                              <1> 
     26                              <1>  %if 3 == %0
     26                              <1>  mov [edi + 4], %3
@@ -120,7 +120,7 @@
     26 0000004F 58                  <1>  pop eax
     27                                  
     28                                                  ; permit interrupt by device
-    29 00000050 6A10E8F40700006683-                     cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
+    29 00000050 6A10E8F50700006683-                     cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
     29 00000059 C404               
     30                                  
     31                                                  ; set up IMR(Interrupt Mask Register)
@@ -1130,7 +1130,7 @@
     16                              <1> 
     17                              <1>             ; define Interrupt Gate Descriptor and apply default process to them
     18                              <1> 
-    19 00000676 8D05[BB070000]      <1>             lea     eax, [int_default]                              ; EAX = the address of interrupt process
+    19 00000676 8D05[BC070000]      <1>             lea     eax, [int_default]                              ; EAX = the address of interrupt process
     20 0000067C BB008E0800          <1>             mov     ebx, 0x0008_8E00                                ; EBX = segment selector & P,DPL,DT,TYPE
     21 00000681 6693                <1>             xchg    ax, bx                                          ; exchange lower word
     22                              <1> 
@@ -1156,163 +1156,165 @@
     42                              <1> 
     43                              <1> int_stop:
     44                              <1> 
-    45                              <1>             ; display the string indicated in EAX
-    46 000006A3 50680F0600006A0F6A- <1>             cdecl   draw_str, 25, 15, 0x060F, eax
-    46 000006AC 19E8D0FBFFFF6683C4- <1>
-    46 000006B5 10                  <1>
-    47                              <1> 
-    48                              <1>             ; convert stack data into string
-    49 000006B6 8B0424              <1>             mov     eax, [esp + 0]                                  ; EIP
-    50 000006B9 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p1, 8, 16, 0b0100
-    50 000006C0 [7E070000]50E85EFE- <1>
-    50 000006C8 FFFF6683C414        <1>
-    51                              <1> 
-    52 000006CE 8B442404            <1>             mov     eax, [esp + 4]                                  ; CS
-    53 000006D2 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p2, 8, 16, 0b0100
-    53 000006D9 [8F070000]50E845FE- <1>
-    53 000006E1 FFFF6683C414        <1>
-    54                              <1> 
-    55 000006E7 8B442408            <1>             mov     eax, [esp + 8]                                  ; EFLAGS
-    56 000006EB 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p3, 8, 16, 0b0100
-    56 000006F2 [A0070000]50E82CFE- <1>
-    56 000006FA FFFF6683C414        <1>
-    57                              <1> 
-    58 00000700 8B44240C            <1>             mov     eax, [esp + 12]
-    59 00000704 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p4, 8, 16, 0b0100
-    59 0000070B [B1070000]50E813FE- <1>
-    59 00000713 FFFF6683C414        <1>
-    60                              <1> 
-    61                              <1>             ; display string
-    62 00000719 68[77070000]68040F- <1>             cdecl   draw_str, 25, 16, 0x0F04, .s1
-    62 00000721 00006A106A19E856FB- <1>
-    62 0000072A FFFF6683C410        <1>
-    63 00000730 68[88070000]68040F- <1>             cdecl   draw_str, 25, 17, 0x0F04, .s2
-    63 00000738 00006A116A19E83FFB- <1>
-    63 00000741 FFFF6683C410        <1>
-    64 00000747 68[99070000]68040F- <1>             cdecl   draw_str, 25, 18, 0x0F04, .s3
-    64 0000074F 00006A126A19E828FB- <1>
-    64 00000758 FFFF6683C410        <1>
-    65 0000075E 68[AA070000]68040F- <1>             cdecl   draw_str, 25, 19, 0x0F04, .s4
-    65 00000766 00006A136A19E811FB- <1>
-    65 0000076F FFFF6683C410        <1>
-    66                              <1> 
-    67                              <1>             ; infinite loop
-    68 00000775 EBFE                <1>             jmp     $
-    69                              <1> 
-    70 00000777 4553502B20303A      <1> .s1         db  "ESP+ 0:"
-    71 0000077E 5F5F5F5F5F5F5F5F20- <1> .p1         db  "________ ", 0
-    71 00000787 00                  <1>
-    72 00000788 2020202B20343A      <1> .s2         db  "   + 4:"
-    73 0000078F 5F5F5F5F5F5F5F5F20- <1> .p2         db  "________ ", 0
-    73 00000798 00                  <1>
-    74 00000799 2020202B20383A      <1> .s3         db  "   + 8:"
-    75 000007A0 5F5F5F5F5F5F5F5F20- <1> .p3         db  "________ ", 0
-    75 000007A9 00                  <1>
-    76 000007AA 2020202B31323A      <1> .s4         db  "   +12:"
-    77 000007B1 5F5F5F5F5F5F5F5F20- <1> .p4         db  "________ ", 0
-    77 000007BA 00                  <1>
-    78                              <1> 
-    79                              <1> int_default:
-    80 000007BB 9C                  <1>             pushf                                                   ; EFLAGS
-    81 000007BC 0E                  <1>             push    cs                                              ; CS
-    82 000007BD 68[A3060000]        <1>             push    int_stop                                        ; the process of displaying stack
-    83                              <1> 
-    84 000007C2 B8[C8070000]        <1>             mov     eax, .s0                                        ; interrupt type
-    85 000007C7 CF                  <1>             iret
-    86                              <1> 
-    87 000007C8 203C2020202053544F- <1> .s0         db  " <    STOP    > ", 0
-    87 000007D1 50202020203E2000    <1>
+    45 000006A3 FB                  <1>             sti                                                     ; interrupt enable
+    46                              <1> 
+    47                              <1>             ; display the string indicated in EAX
+    48 000006A4 50680F0600006A0F6A- <1>             cdecl   draw_str, 25, 15, 0x060F, eax
+    48 000006AD 19E8CFFBFFFF6683C4- <1>
+    48 000006B6 10                  <1>
+    49                              <1> 
+    50                              <1>             ; convert stack data into string
+    51 000006B7 8B0424              <1>             mov     eax, [esp + 0]                                  ; EIP
+    52 000006BA 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p1, 8, 16, 0b0100
+    52 000006C1 [7F070000]50E85DFE- <1>
+    52 000006C9 FFFF6683C414        <1>
+    53                              <1> 
+    54 000006CF 8B442404            <1>             mov     eax, [esp + 4]                                  ; CS
+    55 000006D3 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p2, 8, 16, 0b0100
+    55 000006DA [90070000]50E844FE- <1>
+    55 000006E2 FFFF6683C414        <1>
+    56                              <1> 
+    57 000006E8 8B442408            <1>             mov     eax, [esp + 8]                                  ; EFLAGS
+    58 000006EC 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p3, 8, 16, 0b0100
+    58 000006F3 [A1070000]50E82BFE- <1>
+    58 000006FB FFFF6683C414        <1>
+    59                              <1> 
+    60 00000701 8B44240C            <1>             mov     eax, [esp + 12]
+    61 00000705 6A046A106A0868-     <1>             cdecl   int_to_str, eax, .p4, 8, 16, 0b0100
+    61 0000070C [B2070000]50E812FE- <1>
+    61 00000714 FFFF6683C414        <1>
+    62                              <1> 
+    63                              <1>             ; display string
+    64 0000071A 68[78070000]68040F- <1>             cdecl   draw_str, 25, 16, 0x0F04, .s1
+    64 00000722 00006A106A19E855FB- <1>
+    64 0000072B FFFF6683C410        <1>
+    65 00000731 68[89070000]68040F- <1>             cdecl   draw_str, 25, 17, 0x0F04, .s2
+    65 00000739 00006A116A19E83EFB- <1>
+    65 00000742 FFFF6683C410        <1>
+    66 00000748 68[9A070000]68040F- <1>             cdecl   draw_str, 25, 18, 0x0F04, .s3
+    66 00000750 00006A126A19E827FB- <1>
+    66 00000759 FFFF6683C410        <1>
+    67 0000075F 68[AB070000]68040F- <1>             cdecl   draw_str, 25, 19, 0x0F04, .s4
+    67 00000767 00006A136A19E810FB- <1>
+    67 00000770 FFFF6683C410        <1>
+    68                              <1> 
+    69                              <1>             ; infinite loop
+    70 00000776 EBFE                <1>             jmp     $
+    71                              <1> 
+    72 00000778 4553502B20303A      <1> .s1         db  "ESP+ 0:"
+    73 0000077F 5F5F5F5F5F5F5F5F20- <1> .p1         db  "________ ", 0
+    73 00000788 00                  <1>
+    74 00000789 2020202B20343A      <1> .s2         db  "   + 4:"
+    75 00000790 5F5F5F5F5F5F5F5F20- <1> .p2         db  "________ ", 0
+    75 00000799 00                  <1>
+    76 0000079A 2020202B20383A      <1> .s3         db  "   + 8:"
+    77 000007A1 5F5F5F5F5F5F5F5F20- <1> .p3         db  "________ ", 0
+    77 000007AA 00                  <1>
+    78 000007AB 2020202B31323A      <1> .s4         db  "   +12:"
+    79 000007B2 5F5F5F5F5F5F5F5F20- <1> .p4         db  "________ ", 0
+    79 000007BB 00                  <1>
+    80                              <1> 
+    81                              <1> int_default:
+    82 000007BC 9C                  <1>             pushf                                                   ; EFLAGS
+    83 000007BD 0E                  <1>             push    cs                                              ; CS
+    84 000007BE 68[A3060000]        <1>             push    int_stop                                        ; the process of displaying stack
+    85                              <1> 
+    86 000007C3 B8[C9070000]        <1>             mov     eax, .s0                                        ; interrupt type
+    87 000007C8 CF                  <1>             iret
     88                              <1> 
-    89                              <1> int_zero_div:
-    90 000007D9 9C                  <1>             pushf                                                   ; EFLAGS
-    91 000007DA 0E                  <1>             push    cs                                              ; CS
-    92 000007DB 68[A3060000]        <1>             push    int_stop                                        ; the process of displaying stack
-    93                              <1> 
-    94 000007E0 B8[E6070000]        <1>             mov     eax, .s0                                        ; interrupt type
-    95 000007E5 CF                  <1>             iret
-    96                              <1> 
-    97 000007E6 203C20205A45524F20- <1> .s0         db  " <  ZERO DIV  > ", 0
-    97 000007EF 44495620203E2000    <1>
+    89 000007C9 203C2020202053544F- <1> .s0         db  " <    STOP    > ", 0
+    89 000007D2 50202020203E2000    <1>
+    90                              <1> 
+    91                              <1> int_zero_div:
+    92 000007DA 9C                  <1>             pushf                                                   ; EFLAGS
+    93 000007DB 0E                  <1>             push    cs                                              ; CS
+    94 000007DC 68[A3060000]        <1>             push    int_stop                                        ; the process of displaying stack
+    95                              <1> 
+    96 000007E1 B8[E7070000]        <1>             mov     eax, .s0                                        ; interrupt type
+    97 000007E6 CF                  <1>             iret
     98                              <1> 
-    99                              <1> 
+    99 000007E7 203C20205A45524F20- <1> .s0         db  " <  ZERO DIV  > ", 0
+    99 000007F0 44495620203E2000    <1>
+   100                              <1> 
+   101                              <1> 
     75                                  %include    "../modules/protect/pic.s"
      1                              <1> init_pic:
      2                              <1> 
      3                              <1>             ; save register
-     4 000007F7 50                  <1>             push    eax
+     4 000007F8 50                  <1>             push    eax
      5                              <1> 
      6                              <1>             ; set up Master PIC
      7                              <1>             outp    0x20, 0x11                              ; MASTER.ICW1 = 0x11
-     7 000007F8 B011                <2>  mov al, %2
-     7 000007FA E620                <2>  out %1, al
+     7 000007F9 B011                <2>  mov al, %2
+     7 000007FB E620                <2>  out %1, al
      8                              <1>             outp    0x21, 0x20                              ; MASTER.ICW2 = 0x20 // interrupt vector
-     8 000007FC B020                <2>  mov al, %2
-     8 000007FE E621                <2>  out %1, al
+     8 000007FD B020                <2>  mov al, %2
+     8 000007FF E621                <2>  out %1, al
      9                              <1>             outp    0x21, 0x04                              ; MASTER.ICW3 = 0x04 // slave connection position : IRQ2
-     9 00000800 B004                <2>  mov al, %2
-     9 00000802 E621                <2>  out %1, al
+     9 00000801 B004                <2>  mov al, %2
+     9 00000803 E621                <2>  out %1, al
     10                              <1>             outp    0x21, 0x05                              ; MASTER.ICW4 = 0x05
-    10 00000804 B005                <2>  mov al, %2
-    10 00000806 E621                <2>  out %1, al
+    10 00000805 B005                <2>  mov al, %2
+    10 00000807 E621                <2>  out %1, al
     11                              <1>             outp    0x21, 0xFF                              ; master interrupt mask
-    11 00000808 B0FF                <2>  mov al, %2
-    11 0000080A E621                <2>  out %1, al
+    11 00000809 B0FF                <2>  mov al, %2
+    11 0000080B E621                <2>  out %1, al
     12                              <1> 
     13                              <1>             ; set up Slave
     14                              <1>             outp    0xA0, 0x11                              ; SLAVE.ICW1 = 0x11
-    14 0000080C B011                <2>  mov al, %2
-    14 0000080E E6A0                <2>  out %1, al
+    14 0000080D B011                <2>  mov al, %2
+    14 0000080F E6A0                <2>  out %1, al
     15                              <1>             outp    0xA1, 0x28                              ; SLAVE.ICW2 = 0x28 // interrupt vector
-    15 00000810 B028                <2>  mov al, %2
-    15 00000812 E6A1                <2>  out %1, al
+    15 00000811 B028                <2>  mov al, %2
+    15 00000813 E6A1                <2>  out %1, al
     16                              <1>             outp    0xA1, 0x02                              ; SLAVE.ICW3 = 0x02 // slave ID = 2
-    16 00000814 B002                <2>  mov al, %2
-    16 00000816 E6A1                <2>  out %1, al
+    16 00000815 B002                <2>  mov al, %2
+    16 00000817 E6A1                <2>  out %1, al
     17                              <1>             outp    0xA1, 0x01                              ; SLAVE.ICW4 = 0x01
-    17 00000818 B001                <2>  mov al, %2
-    17 0000081A E6A1                <2>  out %1, al
+    17 00000819 B001                <2>  mov al, %2
+    17 0000081B E6A1                <2>  out %1, al
     18                              <1>             outp    0xA1, 0xFF                              ; slave interrupt mask
-    18 0000081C B0FF                <2>  mov al, %2
-    18 0000081E E6A1                <2>  out %1, al
+    18 0000081D B0FF                <2>  mov al, %2
+    18 0000081F E6A1                <2>  out %1, al
     19                              <1> 
     20                              <1>             ; return regisiter
-    21 00000820 58                  <1>             pop     eax
+    21 00000821 58                  <1>             pop     eax
     22                              <1> 
-    23 00000821 C3                  <1>             ret
+    23 00000822 C3                  <1>             ret
     76                                  %include    "../modules/protect/int_rtc.s"
      1                              <1> int_rtc:
      2                              <1> 
      3                              <1>             ; save registers
-     4 00000822 60                  <1>             pusha
-     5 00000823 1E                  <1>             push    ds
-     6 00000824 06                  <1>             push    es
+     4 00000823 60                  <1>             pusha
+     5 00000824 1E                  <1>             push    ds
+     6 00000825 06                  <1>             push    es
      7                              <1> 
      8                              <1>             ; set up segment selector for data
-     9 00000825 66B81000            <1>             mov     ax, 0x0010                                      ; offset from the beginnig of GDT // second element
-    10 00000829 8ED8                <1>             mov     ds, ax
-    11 0000082B 8EC0                <1>             mov     es, ax
+     9 00000826 66B81000            <1>             mov     ax, 0x0010                                      ; offset from the beginnig of GDT // second element
+    10 0000082A 8ED8                <1>             mov     ds, ax
+    11 0000082C 8EC0                <1>             mov     es, ax
     12                              <1> 
     13                              <1>             ; get time from RTC
-    14 0000082D 68[C8000000]E87AFD- <1>             cdecl   rtc_get_time, RTC_TIME
-    14 00000835 FFFF6683C404        <1>
+    14 0000082E 68[C8000000]E879FD- <1>             cdecl   rtc_get_time, RTC_TIME
+    14 00000836 FFFF6683C404        <1>
     15                              <1> 
     16                              <1>             ; get RTC interrupt factor
     17                              <1>             outp    0x70, 0x0C                                      ; select register C
-    17 0000083B B00C                <2>  mov al, %2
-    17 0000083D E670                <2>  out %1, al
-    18 0000083F E471                <1>             in      al, 0x71
+    17 0000083C B00C                <2>  mov al, %2
+    17 0000083E E670                <2>  out %1, al
+    18 00000840 E471                <1>             in      al, 0x71
     19                              <1> 
     20                              <1>             ; clear interrupt flag
-    21 00000841 B020                <1>             mov     al, 0x20                                        ; AL = EOI command
-    22 00000843 E6A0                <1>             out     0xA0, al                                        ; slave PIC
-    23 00000845 E620                <1>             out     0x20, al                                        ; master PIC
+    21 00000842 B020                <1>             mov     al, 0x20                                        ; AL = EOI command
+    22 00000844 E6A0                <1>             out     0xA0, al                                        ; slave PIC
+    23 00000846 E620                <1>             out     0x20, al                                        ; master PIC
     24                              <1> 
     25                              <1>             ; return register
-    26 00000847 07                  <1>             pop     es
-    27 00000848 1F                  <1>             pop     ds
-    28 00000849 61                  <1>             popa
+    26 00000848 07                  <1>             pop     es
+    27 00000849 1F                  <1>             pop     ds
+    28 0000084A 61                  <1>             popa
     29                              <1> 
-    30 0000084A CF                  <1>             iret                                                    ; end of interrupt process
+    30 0000084B CF                  <1>             iret                                                    ; end of interrupt process
     31                              <1>                                                                     ; return including flag register => iret
     32                              <1> 
     33                              <1> ; Enable interrupt by RTC itself
@@ -1320,34 +1322,34 @@
     35                              <1> rtc_int_en:
     36                              <1> 
     37                              <1>             ; construct stack frame
-    38 0000084B 55                  <1>             push    ebp
-    39 0000084C 89E5                <1>             mov     ebp, esp                                        ;EBP+8 | enable bit
+    38 0000084C 55                  <1>             push    ebp
+    39 0000084D 89E5                <1>             mov     ebp, esp                                        ;EBP+8 | enable bit
     40                              <1> 
     41                              <1>             ; save register
-    42 0000084E 50                  <1>             push    eax
+    42 0000084F 50                  <1>             push    eax
     43                              <1> 
     44                              <1>             ; set up Interrupt Permission
     45                              <1>             outp    0x70, 0x0B                                      ; select register B
-    45 0000084F B00B                <2>  mov al, %2
-    45 00000851 E670                <2>  out %1, al
+    45 00000850 B00B                <2>  mov al, %2
+    45 00000852 E670                <2>  out %1, al
     46                              <1> 
-    47 00000853 E471                <1>             in      al, 0x71
-    48 00000855 0A4508              <1>             or      al, [ebp + 8]                                   ; set the specified bit
+    47 00000854 E471                <1>             in      al, 0x71
+    48 00000856 0A4508              <1>             or      al, [ebp + 8]                                   ; set the specified bit
     49                              <1> 
-    50 00000858 E671                <1>             out     0x71, al                                        ; write down to register B
+    50 00000859 E671                <1>             out     0x71, al                                        ; write down to register B
     51                              <1> 
     52                              <1>             ; return register
-    53 0000085A 58                  <1>             pop     eax
+    53 0000085B 58                  <1>             pop     eax
     54                              <1> 
     55                              <1>             ; destruct stack frame
-    56 0000085B 89EC                <1>             mov     esp, ebp
-    57 0000085D 5D                  <1>             pop     ebp
+    56 0000085C 89EC                <1>             mov     esp, ebp
+    57 0000085E 5D                  <1>             pop     ebp
     58                              <1> 
-    59 0000085E C3                  <1>             ret
+    59 0000085F C3                  <1>             ret
     77                                  
     78                                  
     79                                  
     80                                  
     81                                                  ; Padding
     82                                  
-    83 0000085F 00<rept>                                times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte
+    83 00000860 00<rept>                                times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte
