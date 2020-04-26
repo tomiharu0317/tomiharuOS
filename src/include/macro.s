@@ -33,6 +33,11 @@
         pop     eax
 %endmacro
 
+%macro  outp 2
+        mov     al, %2
+        out     %1, al
+%endmacro
+
 struc   drive                               ; define parameters by structure when reading sector
             .no         resw    1           ; drive no.
             .cyln       resw    1           ; cylinder
