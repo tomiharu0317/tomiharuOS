@@ -88,3 +88,39 @@ ring_wr:
             pop     ebp
 
             ret
+
+draw_key:
+
+            ; construct stack frame                                     ;    +16 | ring buffer
+            push    ebp                                                 ;    +12 | row
+            mov     ebp, esp                                            ; EBP+ 8 | col
+
+            ; save registers
+            pusha                                                       ; save EAX,EBX,ECX,EDX,EDI,ESI,EBP,ESP
+
+            ; get args
+            mov     edx, [ebp +  8]
+            mov     edi, [ebp + 12]
+            mov     esi, [ebp + 16]
+
+            ; get ring buffer info
+            mov     ebx, [esi + ring_buff.rp]                           ; EBX = wp // writing location
+            lea     esi, [esi + ring_buff.item]
+            mov     ecx, RING_ITEM_SIZE
+
+            ; display data
+.10L:
+
+            dec     ebx                                                 ; EBX-- == where data exists
+            and     ebx, RING_INDEX_MASK
+            mov     al, [esi + ebx]                                     ; EAX = KEY_BUFF[EBX]
+
+            cdecl   int_to_str, eax, .tmp, 2, 16, 0b0100
+            cdecl   draw_str, edx, edi, 0x02, .tmp
+
+            add     edx, 3                                              ; updata display position(3 chars)
+
+            loop    .10L
+.10E:
+
+.tmp        db "-- ", 0
