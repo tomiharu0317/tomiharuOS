@@ -23,14 +23,15 @@ kernel:
                 cdecl   init_pic
 
                 set_vect    0x00, int_zero_div                  ; define interrupt process: zero div
+                set_vect    0x21, int_keyboard                  ; define interrupt process: KBC
                 set_vect    0x28, int_rtc                       ; define interrupt process: RTC
 
                 ; permit interrupt by device
                 cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
 
                 ; set up IMR(Interrupt Mask Register)
-                outp    0x21, 0b1111_1011                       ; interrupt enable: slave PIC // master
-                outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC       // slave
+                outp    0x21, 0b1111_1001                       ; interrupt enable: slave PIC/KBC   // master
+                outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC             // slave
 
                 ; CPU interrupt enable
                 sti
@@ -42,17 +43,34 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
-                ; display time
 .10L:
+
+                ; display time
                 mov     eax, [RTC_TIME]
                 cdecl   draw_time, 72, 0, 0x0700, eax
 
+
+                ; get key code
+                cdecl   ring_rd, _KEY_BUFF, .int_key
+                cmp     eax, 0
+                je      .10E
+
+                ; display key code
+                cdecl   draw_key, 2, 29, _KEY_BUFF
+.10E:
+
                 jmp     .10L
 
-                ; End of Process
-                jmp     $
+
+
+
+
+
 ;data
-.s0    db  " Hello, kernel! ", 0
+.s0:    db  " Hello, kernel! ", 0
+
+ALIGN 4, db 0
+.int_key:   dd 0
 
 ALIGN 4, db 0
 FONT_ADR:   dd 0
@@ -74,7 +92,8 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/interrupt.s"
 %include    "../modules/protect/pic.s"
 %include    "../modules/protect/int_rtc.s"
-
+%include    "../modules/protect/ring_buff.s"
+%include    "../modules/protect/int_keyboard.s"
 
 
 

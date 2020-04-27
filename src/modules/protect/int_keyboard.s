@@ -26,5 +26,5 @@ int_keyboard:
 
             iret
 
-ALGIN 4, db 0
+ALIGN 4, db 0
 _KEY_BUFF:  times ring_buff_size db 0

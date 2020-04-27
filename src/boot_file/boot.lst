@@ -64,6 +64,15 @@
     44 00000004 <res 00000002>      <1>             .head       resw    1           ; head
     45 00000006 <res 00000002>      <1>             .sect       resw    1           ; sector
     46                              <1> endstruc
+    47                              <1> 
+    48                              <1> %define     RING_ITEM_SIZE      (1 << 4)
+    49                              <1> %define     RING_INDEX_MASK     (RING_ITEM_SIZE - 1)
+    50                              <1> 
+    51                              <1> struc   ring_buff
+    52 00000000 <res 00000004>      <1>             .rp         resd    1                       ; RP: Reading Position
+    53 00000004 <res 00000004>      <1>             .wp         resd    1                       ; WP: Writing Position
+    54 00000008 <res 00000010>      <1>             .item       resb    RING_ITEM_SIZE          ; buffer // unit:byte
+    55                              <1> endstruc
      5                                  
      6                                          ORG     BOOT_LOAD
      7                                  

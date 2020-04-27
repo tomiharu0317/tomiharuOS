@@ -123,4 +123,13 @@ draw_key:
             loop    .10L
 .10E:
 
+            ; return registers
+            popa
+
+            ; destruct stack frame
+            mov     esp, ebp
+            pop     ebp
+
+            ret
+
 .tmp        db "-- ", 0
