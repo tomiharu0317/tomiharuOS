@@ -22,7 +22,8 @@ kernel:
                 cdecl   init_int
                 cdecl   init_pic
 
-                set_vect    0x00, int_zero_div                  ; define interrupt process: zero div
+                set_vect    0x00, int_zero_div                  ; define interrupt process: Zero div
+                set_vect    0x20, int_timer                     ; define interrupt process: Timer
                 set_vect    0x21, int_keyboard                  ; define interrupt process: KBC
                 set_vect    0x28, int_rtc                       ; define interrupt process: RTC
 
@@ -30,8 +31,8 @@ kernel:
                 cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
 
                 ; set up IMR(Interrupt Mask Register)
-                outp    0x21, 0b1111_1001                       ; interrupt enable: slave PIC/KBC   // master
-                outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC             // slave
+                outp    0x21, 0b1111_1000                       ; interrupt enable: slave PIC/KBC/Timer     // master
+                outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC                     // slave
 
                 ; CPU interrupt enable
                 sti
@@ -58,6 +59,9 @@ kernel:
                 ; display key code
                 cdecl   draw_key, 2, 29, _KEY_BUFF
 .10E:
+
+                ; draw rotation bar
+                cdecl   draw_rotation_bar
 
                 jmp     .10L
 
@@ -94,6 +98,11 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_rtc.s"
 %include    "../modules/protect/ring_buff.s"
 %include    "../modules/protect/int_keyboard.s"
+%include    "modules/int_timer.s"
+%include    "../modules/protect/timer.s"
+%include    "../modules/protect/draw_rotation_bar.s"
+
+
 
 
 
