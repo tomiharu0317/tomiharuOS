@@ -55,7 +55,7 @@ TSS_1:
 .ds:            dd  DS_TASK_1                                   ;  84: DS
 .fs:            dd  DS_TASK_1                                   ;  88: FS
 .gs:            dd  DS_TASK_1                                   ;  92: GS
-.ldt:           dd  SS_LDT_1                                    ;* 96: LDT segment selector
+.ldt:           dd  SS_LDT                                    ;* 96: LDT segment selector
 .io:            dd  0                                           ; 100: I/O map base address
 
 ;-----------------------------------------------------------------------------------------------
@@ -66,6 +66,18 @@ GDT:            dq  0x0000000000000000
 .cs_kernel:     dq  0x00CF9A000000FFFF                          ; CODE 4G
 .ds_kernel:     dq  0x00CF92000000FFFF                          ; DATA 4G
 .ldt            dq  0x0000820000000000                          ; LDT descriptor
+.tss_0:         dq  0x0000890000000067                          ; TSS descriptor
+.tss_1:         dq  0x0000890000000067                          ; TSS descriptor
+.end:
+
+CS_KERNEL       equ .cs_kernel - GDT
+DS_KERNEL       equ .ds_kernel - GDT
+SS_LDT          equ .ldt       - GDT
+SS_TASK_0       equ .tss_0     - GDT
+SS_TASK_1       equ .tss_1     - GDT
+
+GDTR:   dw      GDT.end - GDT - 1
+        dd      GDT
 
 ;-----------------------------------------------------------------------------------------------
 ; LDT
