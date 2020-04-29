@@ -18,10 +18,15 @@ kernel:
                 add     eax, ebx
                 mov     [FONT_ADR], eax                         ; FONT_ADR[0] = EAX
 
+                ; set up base address of TSS descriptor
+                set_desc    GDT.tss_0, TSS_0
+                set_desc    GDT.tss_1, TSS_1
+
                 ; set up LDT
                 set_desc    GDT.ldt, LDT, word LDT_LIMIT        ; descriptor address/base address/limit
 
-
+                ; load GDTR
+                lgdt        [GDTR]
 
                 ; initialize interrupt vector
                 cdecl   init_int
