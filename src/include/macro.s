@@ -53,3 +53,23 @@ struc   ring_buff
             .wp         resd    1                       ; WP: Writing Position
             .item       resb    RING_ITEM_SIZE          ; buffer // unit:byte
 endstruc
+
+%macro  set_desc 2-*
+            push    eax
+            push    edi
+
+            mov     edi, %1                             ; descriptor address
+            mov     eax, %2                             ; base address
+
+        %if 3 == %0
+            mov     [edi + 0], %3                       ; limit
+        %endif
+
+            mov     [edi + 2], ax                       ; base([15:0])
+            shr     eax, 16
+            mov     [edi + 4], al                       ; base([23:16])
+            mov     [edi + 7], ah                       ; base([31:24])
+
+            pop     edi
+            pop     eax
+%endmacro

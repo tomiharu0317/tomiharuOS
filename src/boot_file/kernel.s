@@ -18,6 +18,11 @@ kernel:
                 add     eax, ebx
                 mov     [FONT_ADR], eax                         ; FONT_ADR[0] = EAX
 
+                ; set up LDT
+                set_desc    GDT.ldt, LDT, word LDT_LIMIT        ; descriptor address/base address/limit
+
+
+
                 ; initialize interrupt vector
                 cdecl   init_int
                 cdecl   init_pic
