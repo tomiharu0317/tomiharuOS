@@ -27,7 +27,7 @@ task_1:
             ; display time
             mov     eax, [RTC_TIME]                         ; get time
             cdecl   draw_time, 72, 0, 0x0700, eax
-            
+
 
             jmp     .10L
 
