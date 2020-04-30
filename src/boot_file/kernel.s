@@ -61,15 +61,49 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
-                ; call Task
-                call    SS_TASK_1:0
+;---------------------------------------------------------------------------
+; multitask
+;---------------------------------------------------------------------------
+
+
+;                 ; call Task
+;                 ; call    SS_TASK_1:0
+
+; .10L:
+
+;                 ; display time
+;                 mov     eax, [RTC_TIME]
+;                 cdecl   draw_time, 72, 0, 0x0700, eax
+
+
+;                 ; get key code
+;                 cdecl   ring_rd, _KEY_BUFF, .int_key
+;                 cmp     eax, 0
+;                 je      .10E
+
+;                 ; display key code
+;                 cdecl   draw_key, 2, 29, _KEY_BUFF
+; .10E:
+
+;                 ; draw rotation bar
+;                 cdecl   draw_rotation_bar
+
+;                 jmp     .10L
+
+;----------------------------------------------------------------------------
+
+
+;----------------------------------------------------------------------------
+; non-preemptive multitask
+;----------------------------------------------------------------------------
 
 .10L:
 
-                ; display time
-                mov     eax, [RTC_TIME]
-                cdecl   draw_time, 72, 0, 0x0700, eax
+                ; call task
+                jmp     SS_TASK_1:0                             ; jump to Task1
 
+                ; draw rotation bar
+                cdecl   draw_rotation_bar
 
                 ; get key code
                 cdecl   ring_rd, _KEY_BUFF, .int_key
@@ -80,11 +114,9 @@ kernel:
                 cdecl   draw_key, 2, 29, _KEY_BUFF
 .10E:
 
-                ; draw rotation bar
-                cdecl   draw_rotation_bar
-
                 jmp     .10L
 
+;-----------------------------------------------------------------------------
 
 ;data
 .s0:    db  " Hello, kernel! ", 0
