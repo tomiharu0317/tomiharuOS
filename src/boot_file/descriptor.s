@@ -45,7 +45,7 @@ TSS_1:
 .ecx:           dd  0                                           ;  44: ECX
 .edx:           dd  0                                           ;  48: EDX
 .ebx:           dd  0                                           ;  52: EBX
-.esp:           dd  0                                           ;  56: ESP
+.esp:           dd  SP_TASK_1                                           ;  56: ESP
 .ebp:           dd  0                                           ;  60: EBP
 .esi:           dd  0                                           ;  64: ESI
 .edi:           dd  0                                           ;  68: EDI
@@ -55,7 +55,7 @@ TSS_1:
 .ds:            dd  DS_TASK_1                                   ;  84: DS
 .fs:            dd  DS_TASK_1                                   ;  88: FS
 .gs:            dd  DS_TASK_1                                   ;  92: GS
-.ldt:           dd  SS_LDT                                    ;* 96: LDT segment selector
+.ldt:           dd  SS_LDT                                      ;* 96: LDT segment selector
 .io:            dd  0                                           ; 100: I/O map base address
 
 ;-----------------------------------------------------------------------------------------------

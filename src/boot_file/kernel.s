@@ -18,15 +18,22 @@ kernel:
                 add     eax, ebx
                 mov     [FONT_ADR], eax                         ; FONT_ADR[0] = EAX
 
-                ; set up base address of TSS descriptor
+                ; set up TSS descriptor
                 set_desc    GDT.tss_0, TSS_0
                 set_desc    GDT.tss_1, TSS_1
 
                 ; set up LDT
                 set_desc    GDT.ldt, LDT, word LDT_LIMIT        ; descriptor address/base address/limit
 
-                ; load GDTR
+                ; load GDTR (resetting)
                 lgdt        [GDTR]
+
+                ; set up stack
+                mov     esp, SP_TASK_0                          ; set up stack for Task0
+
+                ; recognize Kernel as Task0
+                mov     ax, SS_TASK_0
+                ltr     ax                                      ; initialize TR
 
                 ; initialize interrupt vector
                 cdecl   init_int
@@ -54,6 +61,9 @@ kernel:
                 ; display string
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
+                ; call Task
+                call    SS_TASK_1:0
+
 .10L:
 
                 ; display time
@@ -76,10 +86,6 @@ kernel:
                 jmp     .10L
 
 
-
-
-
-
 ;data
 .s0:    db  " Hello, kernel! ", 0
 
@@ -91,7 +97,12 @@ FONT_ADR:   dd 0
 RTC_TIME:   dd 0
 
 
-; modules
+; TASKS
+%include    "descriptor.s"
+%include    "modules/int_timer.s"
+%include    "tasks/task_1.s"
+
+; MODULES
 %include    "../modules/protect/vga.s"
 %include    "../modules/protect/draw_char.s"
 %include    "../modules/protect/draw_font.s"
@@ -108,14 +119,10 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_rtc.s"
 %include    "../modules/protect/ring_buff.s"
 %include    "../modules/protect/int_keyboard.s"
-%include    "modules/int_timer.s"
 %include    "../modules/protect/timer.s"
 %include    "../modules/protect/draw_rotation_bar.s"
 
 
+; PADDING
 
-
-
-                ; Padding
-
-                times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte
+            times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte
