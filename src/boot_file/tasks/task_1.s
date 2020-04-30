@@ -1,7 +1,7 @@
 task_1:
 
             ; display string
-            cdecl   draw_str, 63, 0, 0x07, .s0
+            cdecl   SS_GATE_0:0, 63, 0, 0x07, .s0               ; draw_str()
 
 ;-------------------------------------------------------------
 ; non-preemptive multitask
@@ -23,15 +23,15 @@ task_1:
 ; preemptive multitask
 ;-------------------------------------------------------------
 
-.10L:
-            ; display time
-            mov     eax, [RTC_TIME]                         ; get time
-            cdecl   draw_time, 72, 0, 0x0700, eax
+; .10L:
+;             ; display time
+;             mov     eax, [RTC_TIME]                         ; get time
+;             cdecl   draw_time, 72, 0, 0x0700, eax
 
 
-            jmp     .10L
+;             jmp     .10L
 
 ;-------------------------------------------------------------
 
-            ; data
-.s0:        db  "Task_1", 0
+;             ; data
+; .s0:        db  "Task_1", 0
