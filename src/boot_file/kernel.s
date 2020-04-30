@@ -1,5 +1,6 @@
-;macro
+%define     USE_SYSTEM_CALL
 
+;macro
 %include    "../include/define.s"
 %include    "../include/macro.s"
 
@@ -46,6 +47,9 @@ kernel:
                 set_vect    0x20, int_timer                     ; define interrupt process: Timer
                 set_vect    0x21, int_keyboard                  ; define interrupt process: KBC
                 set_vect    0x28, int_rtc                       ; define interrupt process: RTC
+                set_vect    0x81, trap_gate_81, word 0xEF00     ; define trap gate        : display a char
+                set_vect    0x82, trap_gate_82, word 0xEF00     ; define trap gate        : draw pixel
+
 
                 ; permit interrupt by device
                 cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable

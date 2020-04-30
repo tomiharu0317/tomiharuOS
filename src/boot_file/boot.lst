@@ -100,6 +100,21 @@
     73                              <1>             pop     edi
     74                              <1>             pop     eax
     75                              <1> %endmacro
+    76                              <1> 
+    77                              <1> %macro  set_gate 2-*
+    78                              <1>             push    eax
+    79                              <1>             push    edi
+    80                              <1> 
+    81                              <1>             mov     edi, %1                             ; descriptor address
+    82                              <1>             mov     eax, %2                             ; base address
+    83                              <1> 
+    84                              <1>             mov     [edi + 0], ax                       ; base([15:0])
+    85                              <1>             shr     eax, 16
+    86                              <1>             mov     [edi + 6], ax                       ; base([31:16])
+    87                              <1> 
+    88                              <1>             pop     edi
+    89                              <1>             pop     eax
+    90                              <1> %endmacro
      5                                  
      6                                          ORG     BOOT_LOAD
      7                                  

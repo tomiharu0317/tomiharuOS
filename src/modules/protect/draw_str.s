@@ -27,8 +27,11 @@ draw_str:
             cmp     al, 0                                       ; if (AL == 0) break;
             je      .10E
 
+%ifdef      USE_SYSTEM_CALL
+            int     0x81                                        ; sys_call(1, x, y, color, char)
+%else
             cdecl   draw_char, ecx, edx, ebx, eax
-
+%endif
             inc     ecx
             cmp     ecx, 80                                     ; if (80 <= ECX)
             jl      .12E                                        ; {

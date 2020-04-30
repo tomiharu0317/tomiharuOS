@@ -7,7 +7,7 @@ trap_gate_81:
 
 trap_gate_82:
 
-            ; draw dot
+            ; draw pixel
             cdecl   draw_pixel, ecx, edx, ebx
 
             iret
