@@ -6,9 +6,16 @@ draw_char:
                                                                 ;EBP+ 8 | column(0~79)
 
             ; save registers
+            push    eax
             push    ebx
+            push    ecx
+            push    edx
             push    esi
             push    edi
+
+%ifdef      USE_TEST_AND_SET
+            cdecl   test_and_set, IN_USE                        ; TEST_AND_SET(IN_USE) // waiting for resource to be available
+%endif
 
             ; set copy_target font address
             movzx   esi, byte [ebp + 20]
@@ -43,13 +50,26 @@ draw_char:
             cdecl   vga_set_write_plane, 0x01                   ; reading plane : blue(B)
             cdecl   vram_font_copy, esi, edi, 0x01, ebx
 
+%ifdef      USE_TEST_AND_SET
+
+            mov     [IN_USE], dword 0                           ; clear global variable
+%endif
+
             ; return registers
-            pop     edi
-            pop     esi
-            pop     ebx
+            pop		edi
+		    pop		esi
+		    pop		edx
+		    pop		ecx
+		    pop		ebx
+		    pop		eax
 
             ; destruct stack frame
             mov     esp, ebp
             pop     ebp
 
             ret
+
+%ifdef      USE_TEST_AND_SET
+ALIGN 4, db 0
+IN_USE: dd 0
+%endif
