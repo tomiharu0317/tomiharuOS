@@ -46,6 +46,7 @@ kernel:
 
                 ; permit interrupt by device
                 cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
+                cdecl   int_en_timer0
 
                 ; set up IMR(Interrupt Mask Register)
                 outp    0x21, 0b1111_1000                       ; interrupt enable: slave PIC/KBC/Timer     // master
@@ -62,7 +63,7 @@ kernel:
                 cdecl   draw_str, 25, 14, 0x010F, .s0
 
 ;---------------------------------------------------------------------------
-; multitask
+; default multitask
 ;---------------------------------------------------------------------------
 
 
@@ -97,10 +98,32 @@ kernel:
 ; non-preemptive multitask
 ;----------------------------------------------------------------------------
 
-.10L:
+; .10L:
 
-                ; call task
-                jmp     SS_TASK_1:0                             ; jump to Task1
+;                 ; call task
+;                 jmp     SS_TASK_1:0                             ; jump to Task1
+
+;                 ; draw rotation bar
+;                 cdecl   draw_rotation_bar
+
+;                 ; get key code
+;                 cdecl   ring_rd, _KEY_BUFF, .int_key
+;                 cmp     eax, 0
+;                 je      .10E
+
+;                 ; display key code
+;                 cdecl   draw_key, 2, 29, _KEY_BUFF
+; .10E:
+
+;                 jmp     .10L
+
+;-----------------------------------------------------------------------------
+
+;----------------------------------------------------------------------------
+; preemptive multitask
+;----------------------------------------------------------------------------
+
+.10L:
 
                 ; draw rotation bar
                 cdecl   draw_rotation_bar

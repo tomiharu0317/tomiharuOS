@@ -16,6 +16,18 @@ int_timer:
             ; clear interrupt flag(EOI)
             outp    0x20, 0x20                                              ; master PIC:EOI command
 
+            ; exchange Task
+            str     ax                                                      ; AX = TR // current Task Register
+            cmp     ax, SS_TASK_1
+            je      .11L
+
+            jmp     SS_TASK_1:0
+            jmp     .10E
+.11L:
+            jmp     SS_TASK_0:0
+            jmp     .10E
+.10E:
+
             ; return registers
             pop     es
             pop     ds
