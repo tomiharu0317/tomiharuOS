@@ -432,12 +432,12 @@
     49 00000228 00000000            <1> .ebp:           dd  0                                           ;  60: EBP
     50 0000022C 00000000            <1> .esi:           dd  0                                           ;  64: ESI
     51 00000230 00000000            <1> .edi:           dd  0                                           ;  68: EDI
-    52 00000234 24000000            <1> .es:            dd  DS_TASK_1                                   ;  72: ES
-    53 00000238 1C000000            <1> .cs:            dd  CS_TASK_1                                   ;  76: CS
-    54 0000023C 24000000            <1> .ss:            dd  DS_TASK_1                                   ;  80: SS
-    55 00000240 24000000            <1> .ds:            dd  DS_TASK_1                                   ;  84: DS
-    56 00000244 24000000            <1> .fs:            dd  DS_TASK_1                                   ;  88: FS
-    57 00000248 24000000            <1> .gs:            dd  DS_TASK_1                                   ;  92: GS
+    52 00000234 27000000            <1> .es:            dd  DS_TASK_1                                   ;  72: ES
+    53 00000238 1F000000            <1> .cs:            dd  CS_TASK_1                                   ;  76: CS
+    54 0000023C 27000000            <1> .ss:            dd  DS_TASK_1                                   ;  80: SS
+    55 00000240 27000000            <1> .ds:            dd  DS_TASK_1                                   ;  84: DS
+    56 00000244 27000000            <1> .fs:            dd  DS_TASK_1                                   ;  88: FS
+    57 00000248 27000000            <1> .gs:            dd  DS_TASK_1                                   ;  92: GS
     58 0000024C 18000000            <1> .ldt:           dd  SS_LDT                                      ;* 96: LDT segment selector
     59 00000250 00000000            <1> .io:            dd  0                                           ; 100: I/O map base address
     60                              <1> 
@@ -469,14 +469,14 @@
     86 0000028A 0000000000000000    <1> LDT:            dq  0x0000000000000000                          ; NULL
     87 00000292 FFFF0000009ACF00    <1> .cs_task_0:     dq  0x00CF9A000000FFFF                          ; CODE 4G
     88 0000029A FFFF00000092CF00    <1> .ds_task_0:     dq  0x00CF92000000FFFF                          ; DATA 4G
-    89 000002A2 FFFF0000009ACF00    <1> .cs_task_1:     dq  0x00CF9A000000FFFF                          ; CODE 4G
-    90 000002AA FFFF00000092CF00    <1> .ds_task_1:     dq  0x00CF92000000FFFF                          ; DATA 4G
+    89 000002A2 FFFF000000FACF00    <1> .cs_task_1:     dq  0x00CFFA000000FFFF                          ; CODE 4G
+    90 000002AA FFFF000000F2CF00    <1> .ds_task_1:     dq  0x00CFF2000000FFFF                          ; DATA 4G
     91                              <1> .end:
     92                              <1> 
     93                              <1> CS_TASK_0       equ (.cs_task_0 - LDT) | 4                      ; cs selector for task0 // set bit 2(TI)
-    94                              <1> DS_TASK_0       equ (.ds_task_0 - LDT) | 4                      ; ds selector for task0
-    95                              <1> CS_TASK_1       equ (.cs_task_1 - LDT) | 4                      ; cs selector for task1
-    96                              <1> DS_TASK_1       equ (.ds_task_1 - LDT) | 4                      ; ds selector for task1
+    94                              <1> DS_TASK_0       equ (.ds_task_0 - LDT) | 4                      ; ds selector for task0 // Priviledge level 0
+    95                              <1> CS_TASK_1       equ (.cs_task_1 - LDT) | 4 | 3                  ; cs selector for task1 // Priviledge level 3
+    96                              <1> DS_TASK_1       equ (.ds_task_1 - LDT) | 4 | 3                  ; ds selector for task1
     97                              <1> 
     98                              <1> LDT_LIMIT       equ .end        - LDT - 1
    157                                  %include    "modules/int_timer.s"
@@ -555,7 +555,7 @@
     29 00000309 5068000700006A006A- <1>             cdecl   draw_time, 72, 0, 0x0700, eax
     29 00000312 48E8350500006683C4- <1>
     29 0000031B 10                  <1>
-    30                              <1>             
+    30                              <1> 
     31                              <1> 
     32 0000031C EBE6                <1>             jmp     .10L
     33                              <1> 

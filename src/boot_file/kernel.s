@@ -22,6 +22,9 @@ kernel:
                 set_desc    GDT.tss_0, TSS_0
                 set_desc    GDT.tss_1, TSS_1
 
+                ; set up Call Gate
+                set_gate    GDT.call_gate, call_gate
+
                 ; set up LDT
                 set_desc    GDT.ldt, LDT, word LDT_LIMIT        ; descriptor address/base address/limit
 
