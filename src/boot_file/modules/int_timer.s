@@ -18,13 +18,18 @@ int_timer:
 
             ; exchange Task
             str     ax                                                      ; AX = TR // current Task Register
-            cmp     ax, SS_TASK_1
+            cmp     ax, SS_TASK_0
             je      .11L
+            cmp     ax, SS_TASK_1
+            je      .12L
 
-            jmp     SS_TASK_1:0
+            jmp     SS_TASK_0:0
             jmp     .10E
 .11L:
-            jmp     SS_TASK_0:0
+            jmp     SS_TASK_1:0
+            jmp     .10E
+.12L:
+            jmp     SS_TASK_2:0
             jmp     .10E
 .10E:
 

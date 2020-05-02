@@ -23,6 +23,7 @@ kernel:
                 ; set up TSS descriptor
                 set_desc    GDT.tss_0, TSS_0
                 set_desc    GDT.tss_1, TSS_1
+                set_desc    GDT.tss_2, TSS_2
 
                 ; set up Call Gate
                 set_gate    GDT.call_gate, call_gate
@@ -45,6 +46,7 @@ kernel:
                 cdecl   init_pic
 
                 set_vect    0x00, int_zero_div                  ; define interrupt process: Zero div
+                set_vect    0x07, int_nm                        ; define interrupt process: device unavailable exception
                 set_vect    0x20, int_timer                     ; define interrupt process: Timer
                 set_vect    0x21, int_keyboard                  ; define interrupt process: KBC
                 set_vect    0x28, int_rtc                       ; define interrupt process: RTC
@@ -164,6 +166,8 @@ RTC_TIME:   dd 0
 %include    "descriptor.s"
 %include    "modules/int_timer.s"
 %include    "tasks/task_1.s"
+%include    "tasks/task_2.s"
+
 
 ; MODULES
 %include    "../modules/protect/vga.s"
@@ -184,6 +188,7 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_keyboard.s"
 %include    "../modules/protect/timer.s"
 %include    "../modules/protect/draw_rotation_bar.s"
+%include    "../modules/protect/int_nm.s"
 
 
 ; PADDING
