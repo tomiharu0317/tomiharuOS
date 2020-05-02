@@ -93,6 +93,7 @@ int_nm:
             pop     ds
             popa
 
+            iret
 
 ALIGN 4, db 0
 .last_tss:  dd  0
