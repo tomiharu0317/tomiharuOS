@@ -24,6 +24,8 @@ kernel:
                 set_desc    GDT.tss_0, TSS_0
                 set_desc    GDT.tss_1, TSS_1
                 set_desc    GDT.tss_2, TSS_2
+                set_desc    GDT.tss_3, TSS_3
+
 
                 ; set up Call Gate
                 set_gate    GDT.call_gate, call_gate
@@ -167,6 +169,7 @@ RTC_TIME:   dd 0
 %include    "modules/int_timer.s"
 %include    "tasks/task_1.s"
 %include    "tasks/task_2.s"
+%include    "tasks/task_3.s"
 
 
 ; MODULES
