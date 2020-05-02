@@ -2433,9 +2433,10 @@
     93 00001040 1F                  <1>             pop     ds
     94 00001041 61                  <1>             popa
     95                              <1> 
-    96                              <1> 
-    97 00001042 00<rept>            <1> ALIGN 4, db 0
-    98 00001044 00000000            <1> .last_tss:  dd  0
+    96 00001042 CF                  <1>             iret
+    97                              <1> 
+    98 00001043 00                  <1> ALIGN 4, db 0
+    99 00001044 00000000            <1> .last_tss:  dd  0
    195                                  %include    "../modules/protect/wait_tick.s"
      1                              <1> wait_tick:
      2                              <1> 
