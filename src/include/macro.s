@@ -88,3 +88,24 @@ endstruc
             pop     edi
             pop     eax
 %endmacro
+
+struc   rose
+            .x0         resd    1                       ; upper left coordinate : X0
+            .y0         resd    1                       ; upper left coordinate : Y0
+            .x1         resd    1                       ; lower right coordinate : X1
+            .y1         resd    1                       ; lower right coordinate : Y1
+
+            .n          resd    1                       ; variable:n
+            .d          resd    1                       ; variable:d
+
+            .color_x    resd    1                       ; display color : X axis
+            .color_y    resd    1                       ; display color : Y axis
+            .color_z    resd    1                       ; display color : frame
+            .color_s    resd    1                       ; display color : char
+            .color_f    resd    1                       ; display color : graph display color
+            .color_b    resd    1                       ; display color : graph erase color
+
+            .title      resb    16                      ; title
+endstruc
+
+

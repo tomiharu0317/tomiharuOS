@@ -118,6 +118,27 @@
     88                              <1>             pop     edi
     89                              <1>             pop     eax
     90                              <1> %endmacro
+    91                              <1> 
+    92                              <1> struc   rose
+    93 00000000 <res 00000004>      <1>             .x0         resd    1                       ; upper left coordinate : X0
+    94 00000004 <res 00000004>      <1>             .y0         resd    1                       ; upper left coordinate : Y0
+    95 00000008 <res 00000004>      <1>             .x1         resd    1                       ; lower right coordinate : X1
+    96 0000000C <res 00000004>      <1>             .y1         resd    1                       ; lower right coordinate : Y1
+    97                              <1> 
+    98 00000010 <res 00000004>      <1>             .n          resd    1                       ; variable:n
+    99 00000014 <res 00000004>      <1>             .d          resd    1                       ; variable:d
+   100                              <1> 
+   101 00000018 <res 00000004>      <1>             .color_x    resd    1                       ; display color : X axis
+   102 0000001C <res 00000004>      <1>             .color_y    resd    1                       ; display color : Y axis
+   103 00000020 <res 00000004>      <1>             .color_z    resd    1                       ; display color : frame
+   104 00000024 <res 00000004>      <1>             .color_s    resd    1                       ; display color : char
+   105 00000028 <res 00000004>      <1>             .color_f    resd    1                       ; display color : graph display color
+   106 0000002C <res 00000004>      <1>             .color_b    resd    1                       ; display color : graph erase color
+   107                              <1> 
+   108 00000030 <res 00000010>      <1>             .title      resb    16                      ; title
+   109                              <1> endstruc
+   110                              <1> 
+   111                              <1> 
      5                                  
      6                                          ORG     BOOT_LOAD
      7                                  
