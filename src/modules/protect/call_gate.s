@@ -39,4 +39,4 @@ call_gate:
             mov     esp, ebp
             pop     ebp
 
-            retf 4*4                                                ; end func and adjust arguments
+            retf    4 * 4                                                ; end func and adjust arguments

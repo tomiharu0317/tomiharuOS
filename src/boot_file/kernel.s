@@ -188,7 +188,11 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_keyboard.s"
 %include    "../modules/protect/timer.s"
 %include    "../modules/protect/draw_rotation_bar.s"
+%include    "../modules/protect/call_gate.s"
+%include    "../modules/protect/trap_gate.s"
+%include    "../modules/protect/test_and_set.s"
 %include    "../modules/protect/int_nm.s"
+%include    "../modules/protect/wait_tick.s"
 
 
 ; PADDING

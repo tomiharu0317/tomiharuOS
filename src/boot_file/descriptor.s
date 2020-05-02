@@ -110,7 +110,7 @@ DS_KERNEL       equ .ds_kernel - GDT
 SS_LDT          equ .ldt       - GDT
 SS_TASK_0       equ .tss_0     - GDT
 SS_TASK_1       equ .tss_1     - GDT
-SS_TASK_1       equ .tss_2     - GDT
+SS_TASK_2       equ .tss_2     - GDT
 SS_GATE_0       equ .call_gate - GDT
 
 GDTR:   dw      GDT.end - GDT - 1
