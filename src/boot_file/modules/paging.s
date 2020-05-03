@@ -39,14 +39,31 @@ page_set_4m:
 
 init_page:
 
-             ; save registers
-             pusha
+            ; save registers
+            pusha
 
-             ; make page conversion table
-             cdecl  page_set_4m, CR3_BASE
-            ;  mov    [0x00106000 + 0x107 * 16], dword 0               ; set 0x0010_7000 to the page not exist
+            ; make page conversion table
+            cdecl  page_set_4m, CR3_BASE                               ; make page conversion table : for task3
+            cdecl  page_set_4m, CR3_TASK_4                             ; make page conversion table : for task4
+            cdecl  page_set_4m, CR3_TASK_5                             ; make page conversion table : for task5
+            cdecl  page_set_4m, CR3_TASK_6                             ; make page conversion table : for task6
 
-             ; return registers
-             popa
+            ; set page table(absense)
+            mov    [0x0010_6000 + 0x107 * 4], dword 0                  ; set 0x0010_7000 to the page not exist
 
-             ret
+            ; set address conversion
+            mov    [0x0020_1000 + 0x107 * 4], dword PARAM_TASK_4 + 7   ; address conversion : for task4
+            mov    [0x0020_3000 + 0x107 * 4], dword PARAM_TASK_5 + 7   ; address conversion : for task5
+            mov    [0x0020_5000 + 0x107 * 4], dword PARAM_TASK_6 + 7   ; address conversion : for task6
+
+            ; set drawing params
+            cdecl   memcpy, PARAM_TASK_4, DRAW_PARAM.t4, rose_size      ; drawing params : for task4
+            cdecl   memcpy, PARAM_TASK_5, DRAW_PARAM.t5, rose_size      ; drawing params : for task5
+            cdecl   memcpy, PARAM_TASK_6, DRAW_PARAM.t6, rose_size      ; drawing params : for task6
+
+
+
+            ; return registers
+            popa
+
+            ret

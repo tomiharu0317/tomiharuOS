@@ -215,11 +215,12 @@ task_3:
 
 ALIGN 4, db 0
 DRAW_PARAM:
+.t3:
     istruc  rose
-        at  rose.x0,            dd          16          ; upper left coordinate : X0
+        at  rose.x0,            dd          32          ; upper left coordinate : X0
         at  rose.y0,            dd          32          ; upper left coordinate : Y0
-        at  rose.x1,            dd         416          ; lower right coordinate : X1
-        at  rose.y1,            dd         432          ; lower right coordinate : Y1
+        at  rose.x1,            dd         208          ; lower right coordinate : X1
+        at  rose.y1,            dd         208          ; lower right coordinate : Y1
 
         at  rose.n,             dd           2          ; variable : n
         at  rose.d,             dd           1          ; variable : d
@@ -234,3 +235,62 @@ DRAW_PARAM:
         at  rose.title,         db         "Task-3", 0  ; title
     iend
 
+.t4:
+    istruc  rose
+        at  rose.x0,            dd         248          ; upper left coordinate : X0
+        at  rose.y0,            dd          32          ; upper left coordinate : Y0
+        at  rose.x1,            dd         416          ; lower right coordinate : X1
+        at  rose.y1,            dd         208          ; lower right coordinate : Y1
+
+        at  rose.n,             dd           2          ; variable : n
+        at  rose.d,             dd           1          ; variable : d
+
+        at  rose.color_x,       dd         0x0007       ; display color : x axis
+        at  rose.color_y,       dd         0x0007       ; display color : y axis
+        at  rose.color_z,       dd         0x000F       ; display color : frame
+        at  rose.color_s,       dd         0x040F       ; display color : char
+        at  rose.color_f,       dd         0x000F       ; display color : graph display color
+        at  rose.color_b,       dd         0x0004       ; display color : graph erase color
+
+        at  rose.title,         db         "Task-4", 0  ; title
+    iend
+
+.t5:
+    istruc  rose
+        at  rose.x0,            dd          32          ; upper left coordinate : X0
+        at  rose.y0,            dd         272          ; upper left coordinate : Y0
+        at  rose.x1,            dd         208          ; lower right coordinate : X1
+        at  rose.y1,            dd         448          ; lower right coordinate : Y1
+
+        at  rose.n,             dd           2          ; variable : n
+        at  rose.d,             dd           6          ; variable : d
+
+        at  rose.color_x,       dd         0x0007       ; display color : x axis
+        at  rose.color_y,       dd         0x0007       ; display color : y axis
+        at  rose.color_z,       dd         0x000F       ; display color : frame
+        at  rose.color_s,       dd         0x050F       ; display color : char
+        at  rose.color_f,       dd         0x000F       ; display color : graph display color
+        at  rose.color_b,       dd         0x0005       ; display color : graph erase color
+
+        at  rose.title,         db         "Task-5", 0  ; title
+    iend
+
+.t6:
+    istruc  rose
+        at  rose.x0,            dd         248          ; upper left coordinate : X0
+        at  rose.y0,            dd         272          ; upper left coordinate : Y0
+        at  rose.x1,            dd         424          ; lower right coordinate : X1
+        at  rose.y1,            dd         448          ; lower right coordinate : Y1
+
+        at  rose.n,             dd           4          ; variable : n
+        at  rose.d,             dd           6          ; variable : d
+
+        at  rose.color_x,       dd         0x0007       ; display color : x axis
+        at  rose.color_y,       dd         0x0007       ; display color : y axis
+        at  rose.color_z,       dd         0x000F       ; display color : frame
+        at  rose.color_s,       dd         0x060F       ; display color : char
+        at  rose.color_f,       dd         0x000F       ; display color : graph display color
+        at  rose.color_b,       dd         0x0006       ; display color : graph erase color
+
+        at  rose.title,         db         "Task-6", 0  ; title
+    iend

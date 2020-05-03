@@ -25,8 +25,20 @@
     22                              <1>         SP_TASK_1       equ     STACK_BASE + (STACK_SIZE * 2)
     23                              <1>         SP_TASK_2       equ     STACK_BASE + (STACK_SIZE * 3)
     24                              <1>         SP_TASK_3       equ     STACK_BASE + (STACK_SIZE * 4)
-    25                              <1> 
-    26                              <1>         CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
+    25                              <1>         SP_TASK_4       equ     STACK_BASE + (STACK_SIZE * 5)
+    26                              <1>         SP_TASK_5       equ     STACK_BASE + (STACK_SIZE * 6)
+    27                              <1>         SP_TASK_6       equ     STACK_BASE + (STACK_SIZE * 7)
+    28                              <1> 
+    29                              <1>         PARAM_TASK_4    equ     0x0010_8000                     ; drawing params : for task4
+    30                              <1>         PARAM_TASK_5    equ     0x0010_9000                     ; drawing params : for task5
+    31                              <1>         PARAM_TASK_6    equ     0x0010_A000                     ; drawing params : for task6
+    32                              <1> 
+    33                              <1> 
+    34                              <1>         CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
+    35                              <1> 
+    36                              <1>         CR3_TASK_4      equ     0x0020_0000                     ; page conversion table: for task 4
+    37                              <1>         CR3_TASK_5      equ     0x0020_2000                     ; page conversion table: for task 5
+    38                              <1>         CR3_TASK_6      equ     0x0020_4000                     ; page conversion table: for task 6
      4                                  %include    "../include/macro.s"
      1                              <1> %macro  cdecl 1-*.nolist
      2                              <1> 
