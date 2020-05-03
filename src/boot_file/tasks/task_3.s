@@ -115,6 +115,7 @@ task_3:
 
             ; initialization
             mov     esi, DRAW_PARAM
+            ; mov     esi, 0x0010_7000                    ; test page fault exception
 
             ; display title
             mov     eax, [esi + rose.x0]
