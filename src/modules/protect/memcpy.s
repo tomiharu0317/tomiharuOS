@@ -1,17 +1,17 @@
 memcpy:
 
-        ;スタックフレームの構築
+        ; construct stack frame
 
         push    ebp
         mov     ebp, esp
 
-        ;レジスタの保存
+        ; save registers
 
         push    ecx
         push    esi
         push    edi
 
-        ;バイト単位でのコピー
+        ; copy byte by byte
 
         cld
         mov     edi, [ebp + 8]
@@ -20,13 +20,13 @@ memcpy:
 
         rep movsb
 
-        ;レジスタの復帰
+        ; return registers
 
         pop     edi
         pop     esi
         pop     ecx
 
-        ;スタックフレームの破棄
+        ; destruct stack frame
 
         mov     esp, ebp
         pop     ebp
