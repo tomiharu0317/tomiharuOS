@@ -44,7 +44,7 @@ init_page:
 
              ; make page conversion table
              cdecl  page_set_4m, CR3_BASE
-             mov    [0x00106000 + 0x107 * 16], dword 0               ; set 0x0010_7000 to the page not exist
+            ;  mov    [0x00106000 + 0x107 * 16], dword 0               ; set 0x0010_7000 to the page not exist
 
              ; return registers
              popa
