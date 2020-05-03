@@ -50,6 +50,7 @@ kernel:
 
                 set_vect    0x00, int_zero_div                  ; define interrupt process: Zero div
                 set_vect    0x07, int_nm                        ; define interrupt process: device unavailable exception
+                set_vect    0x0E, int_pf                        ; define interrupt process; page fault
                 set_vect    0x20, int_timer                     ; define interrupt process: Timer
                 set_vect    0x21, int_keyboard                  ; define interrupt process: KBC
                 set_vect    0x28, int_rtc                       ; define interrupt process: RTC
@@ -177,6 +178,7 @@ RTC_TIME:   dd 0
 ; TASKS
 %include    "descriptor.s"
 %include    "modules/paging.s"
+%include    "modules/int_pf.s"
 %include    "modules/int_timer.s"
 %include    "tasks/task_1.s"
 %include    "tasks/task_2.s"
@@ -207,6 +209,7 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/test_and_set.s"
 %include    "../modules/protect/int_nm.s"
 %include    "../modules/protect/wait_tick.s"
+%include    "../modules/protect/memcpy.s"
 
 
 ; PADDING
