@@ -1350,8 +1350,8 @@
    114 00000C7A 6A00                <1>             push    dword 0                     ;    -20 | r  = 0 // angle
    115                              <1> 
    116                              <1>             ; initialization
-   117 00000C7C BE[700D0000]        <1>             mov     esi, DRAW_PARAM
-   118                              <1>             ; mov     esi, 0x0010_7000                    ; test page fault exception
+   117                              <1>             ; mov     esi, DRAW_PARAM
+   118 00000C7C BE00701000          <1>             mov     esi, 0x0010_7000                    ; test page fault exception
    119                              <1> 
    120                              <1>             ; display title
    121 00000C81 8B06                <1>             mov     eax, [esi + rose.x0]
@@ -1521,7 +1521,7 @@
    278                              <1> .t6:
    279                              <1>     istruc  rose
    280 00000E30 F8000000            <1>         at  rose.x0,            dd         248          ; upper left coordinate : X0
-   281 00000E34 10010000            <1>         at  rose.y0,            dd         272          ; upper left coordinate : Y0
+   281 00000E34 02000000            <1>         at  rose.y0,            dd         2          ; upper left coordinate : Y0
    282 00000E38 A8010000            <1>         at  rose.x1,            dd         424          ; lower right coordinate : X1
    283 00000E3C C0010000            <1>         at  rose.y1,            dd         448          ; lower right coordinate : Y1
    284                              <1> 
