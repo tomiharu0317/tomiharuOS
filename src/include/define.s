@@ -23,4 +23,4 @@
         SP_TASK_2       equ     STACK_BASE + (STACK_SIZE * 3)
         SP_TASK_3       equ     STACK_BASE + (STACK_SIZE * 4)
 
-
+        CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3

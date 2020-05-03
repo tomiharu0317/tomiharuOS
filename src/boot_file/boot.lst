@@ -26,7 +26,7 @@
     23                              <1>         SP_TASK_2       equ     STACK_BASE + (STACK_SIZE * 3)
     24                              <1>         SP_TASK_3       equ     STACK_BASE + (STACK_SIZE * 4)
     25                              <1> 
-    26                              <1> 
+    26                              <1>         CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
      4                                  %include    "../include/macro.s"
      1                              <1> %macro  cdecl 1-*.nolist
      2                              <1> 

@@ -10,7 +10,7 @@ TSS_0:
 .ss1:           dd  0                                           ;* 16:
 .esp2:          dd  0                                           ;* 20: ESP2
 .ss2:           dd  0                                           ;* 24:
-.cr3:           dd  0                                           ;  28: CR3(PDBR)
+.cr3:           dd  CR3_BASE                                    ;  28: CR3(PDBR)
 .eip:           dd  0                                           ;  32: EIP
 .eflags:        dd  0                                           ;  36: EFLAGS
 .eax:           dd  0                                           ;  40: EAX
@@ -39,7 +39,7 @@ TSS_1:
 .ss1:           dd  0                                           ;* 16:
 .esp2:          dd  0                                           ;* 20: ESP2
 .ss2:           dd  0                                           ;* 24:
-.cr3:           dd  0                                           ;  28: CR3(PDBR)
+.cr3:           dd  CR3_BASE                                    ;  28: CR3(PDBR)
 .eip:           dd  task_1                                      ;  32: EIP
 .eflags:        dd  0x0202                                      ;  36: EFLAGS
 .eax:           dd  0                                           ;  40: EAX
@@ -69,7 +69,7 @@ TSS_2:
 .ss1:           dd  0                                           ;* 16:
 .esp2:          dd  0                                           ;* 20: ESP2
 .ss2:           dd  0                                           ;* 24:
-.cr3:           dd  0                                           ;  28: CR3(PDBR)
+.cr3:           dd  CR3_BASE                                    ;  28: CR3(PDBR)
 .eip:           dd  task_2                                      ;  32: EIP
 .eflags:        dd  0x0202                                      ;  36: EFLAGS
 .eax:           dd  0                                           ;  40: EAX
@@ -98,7 +98,7 @@ TSS_3:
 .ss1:           dd  0                                           ;* 16:
 .esp2:          dd  0                                           ;* 20: ESP2
 .ss2:           dd  0                                           ;* 24:
-.cr3:           dd  0                                           ;  28: CR3(PDBR)
+.cr3:           dd  CR3_BASE                                    ;  28: CR3(PDBR)
 .eip:           dd  task_3                                      ;  32: EIP
 .eflags:        dd  0x0202                                      ;  36: EFLAGS
 .eax:           dd  0                                           ;  40: EAX

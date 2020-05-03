@@ -36,3 +36,16 @@ page_set_4m:
             pop     ebp
 
             ret
+
+init_page:
+
+             ; save registers
+             pusha
+
+             ; make page conversion table
+             cdecl  page_set_4m, CR3_BASE
+
+             ; return registers
+             popa
+
+             ret

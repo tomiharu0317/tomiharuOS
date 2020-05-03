@@ -44,8 +44,9 @@ kernel:
                 ltr     ax                                      ; initialize TR
 
                 ; initialize interrupt vector
-                cdecl   init_int
-                cdecl   init_pic
+                cdecl   init_int                                ; initialize Interrupt Descriptor Table
+                cdecl   init_pic                                ; initialize Programmable Interrupt Controler
+                cdecl   init_page                               ; initialize Paging
 
                 set_vect    0x00, int_zero_div                  ; define interrupt process: Zero div
                 set_vect    0x07, int_nm                        ; define interrupt process: device unavailable exception
@@ -55,7 +56,6 @@ kernel:
                 set_vect    0x81, trap_gate_81, word 0xEF00     ; define trap gate        : display a char
                 set_vect    0x82, trap_gate_82, word 0xEF00     ; define trap gate        : draw pixel
 
-
                 ; permit interrupt by device
                 cdecl   rtc_int_en, 0x10                        ; Updata-Ended Interrupt Enable
                 cdecl   int_en_timer0
@@ -63,6 +63,16 @@ kernel:
                 ; set up IMR(Interrupt Mask Register)
                 outp    0x21, 0b1111_1000                       ; interrupt enable: slave PIC/KBC/Timer     // master
                 outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC                     // slave
+
+                ; register page table
+                mov     eax, CR3_BASE
+                mov     cr3, eax
+
+                ; enable paging
+                mov     eax, cr0
+                or      eax, (1 << 31)                          ; CR0 |= PG
+                mov     cr0, eax
+                jmp     $ + 2                                   ; FLUSH()
 
                 ; CPU interrupt enable
                 sti
@@ -166,6 +176,7 @@ RTC_TIME:   dd 0
 
 ; TASKS
 %include    "descriptor.s"
+%include    "modules/paging.s"
 %include    "modules/int_timer.s"
 %include    "tasks/task_1.s"
 %include    "tasks/task_2.s"
