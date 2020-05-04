@@ -357,12 +357,89 @@ stage_6:
 ; read file func-------------------------------------
 read_file:
 
+        ; save registers
+        push	ax
+	push	bx
+	push	cx
+
         cdecl   memcpy, 0x7800, .s0, .s1 - .s0
+
+        ; read the sector of root directory
+        mov     bx, 32 + 32 + 256                               ; (reserved sect) + (FAT0) + (FAT1)
+        mov     cx, (512 * 32) / 512                            ; total sect num of 512 directory entry
+.10L:
+
+        ; read one sect(== 16 entry)
+        cdecl   read_lba, BOOT, bx, 1, 0x7600
+        cmp     ax, 0
+        je      .10E
+
+        ; search file name from directory entry
+        cdecl   fat_find_file
+        cmp     ax, 0
+        je      .12E
+
+        add     ax, 32 + 256 + 256 + 32 - 2                     ; add offset to sector location
+        cdecl   read_lba, BOOT, ax, 1, 0x7800
+
+        jmp     .10E
+.12E:
+
+        inc     bx
+        loop    .10L
+.10E:
+
+        ; return registers
+        pop     cx
+        pop     bx
+        pop     ax
 
         ret
 
 .s0:    db      'File not found.', 0
 .s1:
+;-----------------------------------------------------
+
+; search file name func-------------------------------
+
+fat_find_file:
+
+        ; save registers
+        push    bx
+        push    cx
+        push    si
+
+        ; search file name
+        cld                                                     ; direction = plus
+        mov     bx, 0                                           ; top sect of file
+        mov     cx, 512 / 32                                    ; num of entry
+
+.10L:
+        and     [si + 11], byte 0x18                            ; check file type
+        jz      .12E                                            ; if (directory/label) => .12E
+
+        cdecl   memcmp, si, .s0, 8 + 3                          ; AX = memcmp(compare file name)
+        cmp     ax, 0                                           ; if not correspond => .12E
+        jne     .12E
+
+        mov     bx, word [si + 0x1A]                            ; BX = top sect of the file
+        jmp     .10E
+
+.12E:
+        add     si, 32                                          ; // next entry
+        loop    .10L
+
+.10E:
+        mov     ax, bx                                          ; top sect of the target file
+
+        ; return registes
+        pop     si
+        pop     cx
+        pop     bx
+
+        ret
+
+.s0:    db      'SPECIAL TXT', 0
 ;-----------------------------------------------------
 
 ;
