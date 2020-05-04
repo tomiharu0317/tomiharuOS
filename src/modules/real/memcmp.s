@@ -1,17 +1,17 @@
 memcmp:
 
-        ;スタックフレームの構築
+        ; construct stack frame
 
-                                        ;BP+ 8 | バイト数
-                                        ;BP+ 6 | アドレス1
-                                        ;BP+ 4 | アドレス0
+                                        ;BP+ 8 | num of byte
+                                        ;BP+ 6 | address1
+                                        ;BP+ 4 | address0
                                         ;------|---------
-                                        ;BP+ 2 | IP(戻り番地)
-                                        ;BP+ 0 | BP(元の値)
+                                        ;BP+ 2 | IP(instruction pointer)
+                                        ;BP+ 0 | BP
         push    bp
         mov     bp, sp
 
-        ;レジスタの保存
+        ; save registers
 
         push    bx
         push    cx
@@ -19,25 +19,25 @@ memcmp:
         push    si
         push    di
 
-        ;引数の取得
+        ; get args
 
         cld
         mov     si, [bp + 4]
         mov     di, [bp + 6]
         mov     cx, [bp + 8]
 
-        ;バイト単位での比較
+        ; compare byte by byte
 
-        repe cmpsb                      ; if(ZF = 異なる文字なし)
+        repe cmpsb                      ; if(ZF = no different char)
         jnz     .10F                    ; {
-        mov     ax, 0                   ; ret = 0; // 一致
+        mov     ax, 0                   ; ret = 0; // correspond
         jmp     .10E                    ; }
 .10F:                                   ; else
         mov     ax, -1                  ; {
-.10E:                                   ; ret = -1 // 不一致
+.10E:                                   ; ret = -1 // not correspond
                                         ; }
 
-        ;レジスタの復帰
+        ; return registers
 
         pop     di
         pop     si
@@ -45,7 +45,7 @@ memcmp:
         pop     cx
         pop     bx
 
-        ;スタックフレームの破棄
+        ; destruct stack frame
 
         mov     sp, bp
         pop     bp
