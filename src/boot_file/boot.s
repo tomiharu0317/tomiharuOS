@@ -19,7 +19,7 @@ entry:
         db      ' OEM-NAME'                     ; 0x03( 8) OEM name
 
         dw      512                             ; 0x0B( 2) num of byte of sector
-        db      1                               ; 0x0D( 1) num of sector of claster
+        db      1                               ; 0x0D( 1) num of sector of cluster
         dw      32                              ; 0x0E( 2) num of reserved sector
         db      2                               ; 0x10( 1) num of FAT
         dw      512                             ; 0x11( 2) num of root entry
@@ -42,7 +42,7 @@ entry:
 
 ipl:
 
-        cli                                 ;割り込みの禁止
+        cli                                     ; disable interrupt
 
         mov     ax, 0x0000
         mov     ds, ax
