@@ -353,7 +353,7 @@
    101                                  %include    "../modules/real/read_chs.s"
      1                              <1> read_chs:
      2                              <1> 
-     3                              <1>             ;スタックフレームの構築
+     3                              <1>             ; construct stack frame
      4                              <1>                                                     ;   +8 | 読み出し先アドレス
      5                              <1>                                                     ;   +6 | セクタ数
      6                              <1>                                                     ;   +4 | drive構造体のアドレス
@@ -366,7 +366,7 @@
     13 00000107 6A03                <1>             push    3
     14 00000109 6A00                <1>             push    0
     15                              <1> 
-    16                              <1>             ;レジスタの保存
+    16                              <1>             ; save registers
     17                              <1> 
     18 0000010B 53                  <1>             push    bx
     19 0000010C 51                  <1>             push    cx
@@ -374,7 +374,7 @@
     21 0000010E 06                  <1>             push    es
     22 0000010F 56                  <1>             push    si
     23                              <1> 
-    24                              <1>             ;処理
+    24                              <1>             ; main process
     25 00000110 8B7604              <1>             mov     si, [bp + 4]                    ;構造体のアドレス
     26                              <1> 
     27                              <1>             ;CXレジスタの設定
@@ -1121,18 +1121,18 @@
    124                                  %include    "../modules/real/memcmp.s"
      1                              <1> memcmp:
      2                              <1> 
-     3                              <1>         ;スタックフレームの構築
+     3                              <1>         ; construct stack frame
      4                              <1> 
-     5                              <1>                                         ;BP+ 8 | バイト数
-     6                              <1>                                         ;BP+ 6 | アドレス1
-     7                              <1>                                         ;BP+ 4 | アドレス0
+     5                              <1>                                         ;BP+ 8 | num of byte
+     6                              <1>                                         ;BP+ 6 | address1
+     7                              <1>                                         ;BP+ 4 | address0
      8                              <1>                                         ;------|---------
-     9                              <1>                                         ;BP+ 2 | IP(戻り番地)
-    10                              <1>                                         ;BP+ 0 | BP(元の値)
+     9                              <1>                                         ;BP+ 2 | IP(instruction pointer)
+    10                              <1>                                         ;BP+ 0 | BP
     11 00000685 55                  <1>         push    bp
     12 00000686 89E5                <1>         mov     bp, sp
     13                              <1> 
-    14                              <1>         ;レジスタの保存
+    14                              <1>         ; save registers
     15                              <1> 
     16 00000688 53                  <1>         push    bx
     17 00000689 51                  <1>         push    cx
@@ -1140,25 +1140,25 @@
     19 0000068B 56                  <1>         push    si
     20 0000068C 57                  <1>         push    di
     21                              <1> 
-    22                              <1>         ;引数の取得
+    22                              <1>         ; get args
     23                              <1> 
     24 0000068D FC                  <1>         cld
     25 0000068E 8B7604              <1>         mov     si, [bp + 4]
     26 00000691 8B7E06              <1>         mov     di, [bp + 6]
     27 00000694 8B4E08              <1>         mov     cx, [bp + 8]
     28                              <1> 
-    29                              <1>         ;バイト単位での比較
+    29                              <1>         ; compare byte by byte
     30                              <1> 
-    31 00000697 F3A6                <1>         repe cmpsb                      ; if(ZF = 異なる文字なし)
+    31 00000697 F3A6                <1>         repe cmpsb                      ; if(ZF = no different char)
     32 00000699 7505                <1>         jnz     .10F                    ; {
-    33 0000069B B80000              <1>         mov     ax, 0                   ; ret = 0; // 一致
+    33 0000069B B80000              <1>         mov     ax, 0                   ; ret = 0; // correspond
     34 0000069E EB03                <1>         jmp     .10E                    ; }
     35                              <1> .10F:                                   ; else
     36 000006A0 B8FFFF              <1>         mov     ax, -1                  ; {
-    37                              <1> .10E:                                   ; ret = -1 // 不一致
+    37                              <1> .10E:                                   ; ret = -1 // not correspond
     38                              <1>                                         ; }
     39                              <1> 
-    40                              <1>         ;レジスタの復帰
+    40                              <1>         ; return registers
     41                              <1> 
     42 000006A3 5F                  <1>         pop     di
     43 000006A4 5E                  <1>         pop     si
@@ -1166,7 +1166,7 @@
     45 000006A6 59                  <1>         pop     cx
     46 000006A7 5B                  <1>         pop     bx
     47                              <1> 
-    48                              <1>         ;スタックフレームの破棄
+    48                              <1>         ; destruct stack frame
     49                              <1> 
     50 000006A8 89EC                <1>         mov     sp, bp
     51 000006AA 5D                  <1>         pop     bp
@@ -1434,7 +1434,7 @@
    332                                  stage_6:
    333                                  
    334                                          ; put char
-   335 000009AC 68[C409]E8F4F683C4-             cdecl   puts, .s0
+   335 000009AC 68[C509]E8F4F683C4-             cdecl   puts, .s0
    335 000009B4 02                 
    336                                  
    337                                          ; wait until user approves
@@ -1451,200 +1451,354 @@
    348 000009C0 CD10                            int     0x10
    349                                  
    350                                          ; End of Process
-   351 000009C2 EB7C                            jmp     stage_7
+   351 000009C2 E9FB00                          jmp     stage_7
    352                                  
-   353 000009C4 367468207374616765-     .s0:    db      "6th stage...", 0x0A, 0x0D, 0x0A, 0x0D
-   353 000009CD 2E2E2E0A0D0A0D     
-   354 000009D4 205B50757368205350-             db      " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0
-   354 000009DD 414345206B65792074-
-   354 000009E6 6F2070726F74656374-
-   354 000009EF 206D6F64652E2E2E5D-
-   354 000009F8 0A0D00             
+   353 000009C5 367468207374616765-     .s0:    db      "6th stage...", 0x0A, 0x0D, 0x0A, 0x0D
+   353 000009CE 2E2E2E0A0D0A0D     
+   354 000009D5 205B50757368205350-             db      " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0
+   354 000009DE 414345206B65792074-
+   354 000009E7 6F2070726F74656374-
+   354 000009F0 206D6F64652E2E2E5D-
+   354 000009F9 0A0D00             
    355                                  
    356                                  
    357                                  ; read file func-------------------------------------
    358                                  read_file:
    359                                  
-   360 000009FB 6A1068[0A0A]680078-             cdecl   memcpy, 0x7800, .s0, .s1 - .s0
-   360 00000A03 E866FC83C406       
-   361                                  
-   362 00000A09 C3                              ret
-   363                                  
-   364 00000A0A 46696C65206E6F7420-     .s0:    db      'File not found.', 0
-   364 00000A13 666F756E642E00     
-   365                                  .s1:
-   366                                  ;-----------------------------------------------------
-   367                                  
-   368                                  ;
-   369                                  ; GLOBAL DESCRIPTOR TABLE
-   370                                  ;
-   371 00000A1A 00<rept>                ALIGN 4, db 0
-   372 00000A1C 0000000000000000        GDT:    dq      0x00_0000_000000_0000                   ; NULL Descriptor
-   373 00000A24 FFFF0000009ACF00        .cs:    dq      0x00_CF9A_000000_FFFF                   ; CODE 4G
-   374 00000A2C FFFF00000092CF00        .ds:    dq      0x00_CF92_000000_FFFF                   ; DATA 4G
-   375                                  .gdt_end:
+   360                                          ; save registers
+   361 000009FC 50                              push	ax
+   362 000009FD 53                      	push	bx
+   363 000009FE 51                      	push	cx
+   364                                  
+   365 000009FF 6A1068[4A0A]680078-             cdecl   memcpy, 0x7800, .s0, .s1 - .s0
+   365 00000A07 E862FC83C406       
+   366                                  
+   367                                          ; read the sector of root directory
+   368 00000A0D BB2002                          mov     bx, 32 + 256 + 256                               ; (reserved sect) + (FAT0) + (FAT1)
+   369 00000A10 B92000                          mov     cx, (512 * 32) / 512                            ; total sect num of 512 directory entry
+   370                                  .10L:
+   371                                  
+   372                                          ; read one sect(== 16 entry)
+   373 00000A13 6800766A015368-                 cdecl   read_lba, BOOT, bx, 1, 0x7600
+   373 00000A1A [9E00]E817FC83C408 
+   374 00000A22 83F800                          cmp     ax, 0
+   375 00000A25 741F                            je      .10E
    376                                  
-   377                                  ; SEGMENT SELECTOR
-   378                                  
-   379                                  SEL_CODE        equ GDT.cs - GDT                        ; selector for code
-   380                                  SEL_DATA        equ GDT.ds - GDT                        ; selector for data
+   377                                          ; search file name from directory entry
+   378 00000A27 E83000                          cdecl   fat_find_file
+   379 00000A2A 83F800                          cmp     ax, 0
+   380 00000A2D 7414                            je      .12E
    381                                  
-   382                                  ; GDT
-   383                                  
-   384 00000A34 1700                    GDTR:   dw      GDT.gdt_end - GDT - 1                   ; limit of descriptor table
-   385 00000A36 [1C0A0000]                      dd      GDT                                     ; base address of descriptor table
-   386                                  
-   387                                  ; IDT
-   388                                  
-   389 00000A3A 0000                    IDTR:   dw      0                                       ; limit of interrupt descriptor table
-   390 00000A3C 00000000                        dd      0                                       ; base address of interrupt descriptor table
+   382 00000A2F 053E02                          add     ax, 32 + 256 + 256 + 32 - 2                     ; add offset to sector location
+   383 00000A32 6800786A015068-                 cdecl   read_lba, BOOT, ax, 1, 0x7800
+   383 00000A39 [9E00]E8F8FB83C408 
+   384                                  
+   385 00000A41 EB03                            jmp     .10E
+   386                                  .12E:
+   387                                  
+   388 00000A43 43                              inc     bx
+   389 00000A44 E2CD                            loop    .10L
+   390                                  .10E:
    391                                  
-   392                                  
-   393                                  stage_7:
-   394 00000A40 FA                              cli                                             ; disable interrupt
-   395                                  
-   396                                          ; load Descriptor table
-   397                                  
-   398 00000A41 0F0116[340A]                    lgdt    [GDTR]                                  ; load Global Descriptor Table
-   399 00000A46 0F011E[3A0A]                    lidt    [IDTR]                                  ; load Interrupt Descriptor Table
-   400                                  
-   401                                          ; migrate to protect mode
-   402 00000A4B 0F20C0                          mov     eax, cr0                                ; set PE(Protect Enable) bit
-   403 00000A4E 83C801                          or      ax, 1                                   ; CRO |= 1
-   404 00000A51 0F22C0                          mov     cr0, eax
-   405                                  
-   406 00000A54 EB00                            jmp     $ + 2                                   ; clear look ahead of cpu instruction
-   407                                  
-   408                                  [BITS 32]
-   409 00000A56 66                              db      0x66                                    ; Operand Size Override prefix
-   410 00000A57 EA[5E0A0000]0800                jmp     SEL_CODE:CODE_32                        ; FAR jump // segment:offset
+   392                                          ; return registers
+   393 00000A46 59                              pop     cx
+   394 00000A47 5B                              pop     bx
+   395 00000A48 58                              pop     ax
+   396                                  
+   397 00000A49 C3                              ret
+   398                                  
+   399 00000A4A 46696C65206E6F7420-     .s0:    db      'File not found.', 0
+   399 00000A53 666F756E642E00     
+   400                                  .s1:
+   401                                  ;-----------------------------------------------------
+   402                                  
+   403                                  ; search file name func-------------------------------
+   404                                  
+   405                                  fat_find_file:
+   406                                  
+   407                                          ; save registers
+   408 00000A5A 53                              push    bx
+   409 00000A5B 51                              push    cx
+   410 00000A5C 56                              push    si
    411                                  
-   412                                  CODE_32:
-   413 00000A5E 66B81000                        mov     ax, SEL_DATA
-   414 00000A62 8ED8                            mov     ds, ax
-   415 00000A64 8EC0                            mov     es, ax
-   416 00000A66 8EE0                            mov     fs, ax
-   417 00000A68 8EE8                            mov     gs, ax
-   418 00000A6A 8ED0                            mov     ss, ax
-   419                                  
-   420                                          ; copy kernel program
+   412                                          ; search file name
+   413 00000A5D FC                              cld                                                     ; direction = plus
+   414 00000A5E BB0000                          mov     bx, 0                                           ; top sect of file      //initialized value
+   415 00000A61 B91000                          mov     cx, 512 / 32                                    ; num of entry          // a sect/32byte
+   416 00000A64 BE0076                          mov     si, 0x7600                                      ; sector address        // reading address
+   417                                  
+   418                                  .10L:
+   419 00000A67 80640B18                        and     [si + 11], byte 0x18                            ; check file type
+   420 00000A6B 7516                            jnz      .12E                                            ; if (directory/label) => .12E
    421                                  
-   422 00000A6C B900080000                      mov     ecx, (KERNEL_SIZE) / 4                  ; ECX = copy by 4 byte unit
-   423 00000A71 BE009C0000                      mov     esi, BOOT_END                            ; ESI = 0x0000_9c00 // kernel part
-   424 00000A76 BF00101000                      mov     edi, KERNEL_LOAD                         ; EDI = 0x0010_1000
-   425 00000A7B FC                              cld                                             ; DF => +
-   426 00000A7C F3A5                            rep     movsd                                   ; while(--ECX) *EDI++ = *ESI++;
-   427                                  
-   428                                          ; jump to Kernel Process
-   429 00000A7E E9(00101000)                    jmp     KERNEL_LOAD
-   430                                  
-   431                                  ;-------------------------------------------------------------------------------------------
-   432                                  ; migrating to real mode program
-   433                                  ;-------------------------------------------------------------------------------------------
-   434                                  TO_REAL_MODE:
+   422 00000A6D 6A0B68[8E0A]56E80F-             cdecl   memcmp, si, .s0, 8 + 3                          ; AX = memcmp(compare file name)
+   422 00000A75 FC83C406           
+   423 00000A79 83F800                          cmp     ax, 0                                           ; if not correspond => .12E
+   424 00000A7C 7505                            jne     .12E
+   425                                  
+   426 00000A7E 8B5C1A                          mov     bx, word [si + 0x1A]                            ; BX = top sect of the file
+   427 00000A81 EB05                            jmp     .10E
+   428                                  
+   429                                  .12E:
+   430 00000A83 83C620                          add     si, 32                                          ; // next entry
+   431 00000A86 E2DF                            loop    .10L
+   432                                  
+   433                                  .10E:
+   434 00000A88 89D8                            mov     ax, bx                                          ; top sect of the target file
    435                                  
-   436                                          ; construct stack frame
-   437                                                                                          ;    +20 | *p(address to strings)
-   438                                                                                          ;    +16 | color
-   439 00000A83 55                              push    ebp                                     ;    +12 | row
-   440 00000A84 89E5                            mov     ebp, esp                                ;    + 8 | column
-   441                                  
-   442                                          ; save registers
-   443 00000A86 60                              pusha
-   444                                  
-   445 00000A87 FA                              cli                                             ; disable interrupt
-   446                                  
-   447                                          ; save current settings
-   448 00000A88 0F20C0                          mov     eax, cr0
-   449 00000A8B A3[1B0B0000]                    mov     [.cr0_saved], eax                       ; save cr0 register
-   450 00000A90 8925[1F0B0000]                  mov     [.esp_saved], esp                       ; save esp register
-   451 00000A96 0F010D[150B0000]                sidt    [.idtr_save]                            ; save IDTR
-   452 00000A9D 0F011D[0F0B0000]                lidt    [.idtr_real]                            ; set interrupt during real mode
-   453                                  
-   454                                          ; migrate to 16bit protect mode
-   455 00000AA4 EA[AB0A0000]1800                jmp     0x0018:.bit16                           ; CS = 0x18
+   436                                          ; return registes
+   437 00000A8A 5E                              pop     si
+   438 00000A8B 59                              pop     cx
+   439 00000A8C 5B                              pop     bx
+   440                                  
+   441 00000A8D C3                              ret
+   442                                  
+   443 00000A8E 5350454349414C2054-     .s0:    db      'SPECIAL TXT', 0
+   443 00000A97 585400             
+   444                                  ;-----------------------------------------------------
+   445                                  
+   446                                  ;
+   447                                  ; GLOBAL DESCRIPTOR TABLE
+   448                                  ;
+   449 00000A9A 00<rept>                ALIGN 4, db 0
+   450 00000A9C 0000000000000000        GDT:    dq      0x00_0000_000000_0000                   ; NULL Descriptor
+   451 00000AA4 FFFF0000009ACF00        .cs:    dq      0x00_CF9A_000000_FFFF                   ; CODE 4G
+   452 00000AAC FFFF00000092CF00        .ds:    dq      0x00_CF92_000000_FFFF                   ; DATA 4G
+   453                                  .gdt_end:
+   454                                  
+   455                                  ; SEGMENT SELECTOR
    456                                  
-   457                                  [BITS 16]
-   458                                  .bit16:
-   459 00000AAB B82000                          mov     ax, 0x0020                              ; DS = 0x20
-   460 00000AAE 8ED8                            mov     ds, ax
-   461 00000AB0 8EC0                            mov     es, ax
-   462 00000AB2 8ED0                            mov     ss, ax
-   463                                  
-   464                                          ; migrate to real mode(disable paging)
-   465 00000AB4 0F20C0                          mov     eax, cr0
-   466 00000AB7 6625FEFFFF7F                    and     eax, 0x7FFF_FFFE                       ; clear PG/PE bits
-   467 00000ABD 0F22C0                          mov     cr0, eax
-   468 00000AC0 EB00                            jmp     $ + 2                                   ; Flush()
+   457                                  SEL_CODE        equ GDT.cs - GDT                        ; selector for code
+   458                                  SEL_DATA        equ GDT.ds - GDT                        ; selector for data
+   459                                  
+   460                                  ; GDT
+   461                                  
+   462 00000AB4 1700                    GDTR:   dw      GDT.gdt_end - GDT - 1                   ; limit of descriptor table
+   463 00000AB6 [9C0A0000]                      dd      GDT                                     ; base address of descriptor table
+   464                                  
+   465                                  ; IDT
+   466                                  
+   467 00000ABA 0000                    IDTR:   dw      0                                       ; limit of interrupt descriptor table
+   468 00000ABC 00000000                        dd      0                                       ; base address of interrupt descriptor table
    469                                  
-   470                                          ; set up segment(real mode)
-   471 00000AC2 EA[C70A]0000                    jmp     0:.real                                 ; CS = 0x0000
-   472                                  .real:
-   473 00000AC7 B80000                          mov     ax, 0x0000
-   474 00000ACA 8ED8                            mov     ds, ax
-   475 00000ACC 8EC0                            mov     es, ax
-   476 00000ACE 8ED0                            mov     ss, ax
-   477 00000AD0 BC007C                          mov     sp, 0x7C00
+   470                                  
+   471                                  stage_7:
+   472 00000AC0 FA                              cli                                             ; disable interrupt
+   473                                  
+   474                                          ; load Descriptor table
+   475                                  
+   476 00000AC1 0F0116[B40A]                    lgdt    [GDTR]                                  ; load Global Descriptor Table
+   477 00000AC6 0F011E[BA0A]                    lidt    [IDTR]                                  ; load Interrupt Descriptor Table
    478                                  
-   479                                          ; read file
-   480 00000AD3 E825FF                          cdecl   read_file
-   481                                  
-   482                                          ; migrate to 16 bit protect mode
-   483 00000AD6 0F20C0                          mov     eax, cr0
-   484 00000AD9 6683C801                        or      eax, 1                                  ; set PE bit
-   485 00000ADD 0F22C0                          mov     cr0, eax
-   486 00000AE0 EB00                            jmp     $ + 2                                   ; Flush()
-   487                                  
-   488                                          ; migrate to 32 bit protect mode
-   489 00000AE2 66                              DB      0x66                                    ; 32 bit override
-   490                                  [BITS 32]
-   491 00000AE3 EA[EA0A0000]0800                jmp     0x0008:.bit32                           ; CS = 32 bit CS
-   492                                  .bit32:
-   493 00000AEA 66B81000                        mov     ax, 0x0010                              ; DS = 32 bit DS
-   494 00000AEE 8ED8                            mov     ds, ax
-   495 00000AF0 8EC0                            mov     es, ax
-   496 00000AF2 8ED0                            mov     ss, ax
+   479                                          ; migrate to protect mode
+   480 00000ACB 0F20C0                          mov     eax, cr0                                ; set PE(Protect Enable) bit
+   481 00000ACE 83C801                          or      ax, 1                                   ; CRO |= 1
+   482 00000AD1 0F22C0                          mov     cr0, eax
+   483                                  
+   484 00000AD4 EB00                            jmp     $ + 2                                   ; clear look ahead of cpu instruction
+   485                                  
+   486                                  [BITS 32]
+   487 00000AD6 66                              db      0x66                                    ; Operand Size Override prefix
+   488 00000AD7 EA[DE0A0000]0800                jmp     SEL_CODE:CODE_32                        ; FAR jump // segment:offset
+   489                                  
+   490                                  CODE_32:
+   491 00000ADE 66B81000                        mov     ax, SEL_DATA
+   492 00000AE2 8ED8                            mov     ds, ax
+   493 00000AE4 8EC0                            mov     es, ax
+   494 00000AE6 8EE0                            mov     fs, ax
+   495 00000AE8 8EE8                            mov     gs, ax
+   496 00000AEA 8ED0                            mov     ss, ax
    497                                  
-   498                                          ; reset register saved before and complete migration
-   499 00000AF4 8B25[1F0B0000]                  mov     esp, [.esp_saved]                       ; return ESP register
-   500 00000AFA A1[1B0B0000]                    mov     eax, [.cr0_saved]                       ; return CR0 register
-   501 00000AFF 0F22C0                          mov     cr0, eax
-   502 00000B02 0F011D[150B0000]                lidt    [.idtr_save]                            ; return IDTR
-   503                                  
-   504 00000B09 FB                              sti                                             ; enable interrupt
+   498                                          ; copy kernel program
+   499                                  
+   500 00000AEC B900080000                      mov     ecx, (KERNEL_SIZE) / 4                  ; ECX = copy by 4 byte unit
+   501 00000AF1 BE009C0000                      mov     esi, BOOT_END                            ; ESI = 0x0000_9c00 // kernel part
+   502 00000AF6 BF00101000                      mov     edi, KERNEL_LOAD                         ; EDI = 0x0010_1000
+   503 00000AFB FC                              cld                                             ; DF => +
+   504 00000AFC F3A5                            rep     movsd                                   ; while(--ECX) *EDI++ = *ESI++;
    505                                  
-   506                                          ; return registers
-   507 00000B0A 61                              popa
+   506                                          ; jump to Kernel Process
+   507 00000AFE E9(00101000)                    jmp     KERNEL_LOAD
    508                                  
-   509                                          ; destruct stack frame
-   510 00000B0B 89EC                            mov     esp, ebp
-   511 00000B0D 5D                              pop     ebp
-   512                                  
-   513 00000B0E C3                              ret
-   514                                  
-   515                                  .idtr_real:
-   516 00000B0F FF03                            dw      0x3FF                                   ; 8 * 256 - 1   : idt_limit
-   517 00000B11 00000000                        dd      0                                       ; VECT_BASE     : idt location
-   518                                  
-   519                                  .idtr_save:
-   520 00000B15 0000                            dw      0                                       ; limit
-   521 00000B17 00000000                        dd      0                                       ; base
+   509                                  ;-------------------------------------------------------------------------------------------
+   510                                  ; migrating to real mode program
+   511                                  ;-------------------------------------------------------------------------------------------
+   512                                  TO_REAL_MODE:
+   513                                  
+   514                                          ; construct stack frame
+   515                                                                                          ;    +20 | *p(address to strings)
+   516                                                                                          ;    +16 | color
+   517 00000B03 55                              push    ebp                                     ;    +12 | row
+   518 00000B04 89E5                            mov     ebp, esp                                ;    + 8 | column
+   519                                  
+   520                                          ; save registers
+   521 00000B06 60                              pusha
    522                                  
-   523                                  .cr0_saved:
-   524 00000B1B 00000000                        dd      0
-   525                                  
-   526                                  .esp_saved:
-   527 00000B1F 00000000                        dd      0
-   528                                  
-   529                                  ;---------------------------------------------------------------------------------
-   530                                  ; Padding
-   531                                  ;---------------------------------------------------------------------------------
-   532 00000B23 00<rept>                        times   BOOT_SIZE - ($ - $$) - 16  db  0
-   533                                  
-   534 00001FF0 [830A0000]                      dd      TO_REAL_MODE                            ; read mode migration progaram
-   535                                  
-   536                                  ;---------------------------------------------------------------------------------
-   537                                  ; Padding
-   538                                  ;---------------------------------------------------------------------------------
-   539                                  
-   540 00001FF4 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte
+   523 00000B07 FA                              cli                                             ; disable interrupt
+   524                                  
+   525                                          ; save current settings
+   526 00000B08 0F20C0                          mov     eax, cr0
+   527 00000B0B A3[ED0B0000]                    mov     [.cr0_saved], eax                       ; save cr0 register
+   528 00000B10 8925[F10B0000]                  mov     [.esp_saved], esp                       ; save esp register
+   529 00000B16 0F010D[E70B0000]                sidt    [.idtr_save]                            ; save IDTR
+   530 00000B1D 0F011D[E10B0000]                lidt    [.idtr_real]                            ; set interrupt during real mode
+   531                                  
+   532                                          ; migrate to 16bit protect mode
+   533 00000B24 EA[2B0B0000]1800                jmp     0x0018:.bit16                           ; CS = 0x18
+   534                                  
+   535                                  [BITS 16]
+   536                                  .bit16:
+   537 00000B2B B82000                          mov     ax, 0x0020                              ; DS = 0x20
+   538 00000B2E 8ED8                            mov     ds, ax
+   539 00000B30 8EC0                            mov     es, ax
+   540 00000B32 8ED0                            mov     ss, ax
+   541                                  
+   542                                          ; migrate to real mode(disable paging)
+   543 00000B34 0F20C0                          mov     eax, cr0
+   544 00000B37 6625FEFFFF7F                    and     eax, 0x7FFF_FFFE                       ; clear PG/PE bits
+   545 00000B3D 0F22C0                          mov     cr0, eax
+   546 00000B40 EB00                            jmp     $ + 2                                   ; Flush()
+   547                                  
+   548                                          ; set up segment(real mode)
+   549 00000B42 EA[470B]0000                    jmp     0:.real                                 ; CS = 0x0000
+   550                                  .real:
+   551 00000B47 B80000                          mov     ax, 0x0000
+   552 00000B4A 8ED8                            mov     ds, ax
+   553 00000B4C 8EC0                            mov     es, ax
+   554 00000B4E 8ED0                            mov     ss, ax
+   555 00000B50 BC007C                          mov     sp, 0x7C00
+   556                                  
+   557                                          ; set up interrupt mask(for real mode)
+   558                                          outp    0x20, 0x11                              ; MASTER.ICW1 = 0x11
+   558 00000B53 B011                <1>  mov al, %2
+   558 00000B55 E620                <1>  out %1, al
+   559                                          outp    0x21, 0x08                              ; MASTER.ICW2 = 0x08
+   559 00000B57 B008                <1>  mov al, %2
+   559 00000B59 E621                <1>  out %1, al
+   560                                          outp    0x21, 0x04                              ; MASTER.ICW3 = 0x04
+   560 00000B5B B004                <1>  mov al, %2
+   560 00000B5D E621                <1>  out %1, al
+   561                                          outp    0x21, 0x01                              ; MASTER.ICW4 = 0x01
+   561 00000B5F B001                <1>  mov al, %2
+   561 00000B61 E621                <1>  out %1, al
+   562                                  
+   563                                          outp    0xA0, 0x11                              ; SLAVE.ICW1 = 0x11
+   563 00000B63 B011                <1>  mov al, %2
+   563 00000B65 E6A0                <1>  out %1, al
+   564                                          outp    0xA1, 0x10                              ; SLAVE.ICW2 = 0x10
+   564 00000B67 B010                <1>  mov al, %2
+   564 00000B69 E6A1                <1>  out %1, al
+   565                                          outp    0xA1, 0x02                              ; SLAVE.ICW3 = 0x02
+   565 00000B6B B002                <1>  mov al, %2
+   565 00000B6D E6A1                <1>  out %1, al
+   566                                          outp    0xA1, 0x01                              ; SLAVE.ICW4 = 0x01
+   566 00000B6F B001                <1>  mov al, %2
+   566 00000B71 E6A1                <1>  out %1, al
+   567                                  
+   568                                          outp    0x21, 0b_1011_1000                      ; interrupt enable : FDD/slave PIC/KBC/Timer
+   568 00000B73 B0B8                <1>  mov al, %2
+   568 00000B75 E621                <1>  out %1, al
+   569                                          outp    0xA1, 0b_1011_1111                      ; interrupt enable : HDD
+   569 00000B77 B0BF                <1>  mov al, %2
+   569 00000B79 E6A1                <1>  out %1, al
+   570                                  
+   571 00000B7B FB                              sti
+   572                                  
+   573                                          ; read file
+   574 00000B7C E87DFE                          cdecl   read_file
+   575                                  
+   576                                          ; set up interrupt mask(for protect mode)
+   577 00000B7F FA                              cli
+   578                                  
+   579                                          outp    0x20, 0x11                              ; MASTER.ICW1 = 0x11
+   579 00000B80 B011                <1>  mov al, %2
+   579 00000B82 E620                <1>  out %1, al
+   580                                          outp    0x21, 0x20                              ; MASTER.ICW2 = 0x20
+   580 00000B84 B020                <1>  mov al, %2
+   580 00000B86 E621                <1>  out %1, al
+   581                                          outp    0x21, 0x04                              ; MASTER.ICW3 = 0x04
+   581 00000B88 B004                <1>  mov al, %2
+   581 00000B8A E621                <1>  out %1, al
+   582                                          outp    0x21, 0x01                              ; MASTER.ICW4 = 0x01
+   582 00000B8C B001                <1>  mov al, %2
+   582 00000B8E E621                <1>  out %1, al
+   583                                  
+   584                                          outp    0xA0, 0x11                              ; SLAVE.ICW1 = 0x11
+   584 00000B90 B011                <1>  mov al, %2
+   584 00000B92 E6A0                <1>  out %1, al
+   585                                          outp    0xA1, 0x28                              ; SLAVE.ICW2 = 0x28
+   585 00000B94 B028                <1>  mov al, %2
+   585 00000B96 E6A1                <1>  out %1, al
+   586                                          outp    0xA1, 0x02                              ; SLAVE.ICW3 = 0x02
+   586 00000B98 B002                <1>  mov al, %2
+   586 00000B9A E6A1                <1>  out %1, al
+   587                                          outp    0xA1, 0x01                              ; SLAVE.ICW4 = 0x01
+   587 00000B9C B001                <1>  mov al, %2
+   587 00000B9E E6A1                <1>  out %1, al
+   588                                  
+   589                                          outp    0x21, 0b_1111_1000                      ; interrupt enable : slave PIC/KBC/Timer
+   589 00000BA0 B0F8                <1>  mov al, %2
+   589 00000BA2 E621                <1>  out %1, al
+   590                                          outp    0xA1, 0b_1111_1110                      ; interrupt enable : RTC
+   590 00000BA4 B0FE                <1>  mov al, %2
+   590 00000BA6 E6A1                <1>  out %1, al
+   591                                  
+   592                                          ; migrate to 16 bit protect mode
+   593 00000BA8 0F20C0                          mov     eax, cr0
+   594 00000BAB 6683C801                        or      eax, 1                                  ; set PE bit
+   595 00000BAF 0F22C0                          mov     cr0, eax
+   596 00000BB2 EB00                            jmp     $ + 2                                   ; Flush()
+   597                                  
+   598                                          ; migrate to 32 bit protect mode
+   599 00000BB4 66                              DB      0x66                                    ; 32 bit override
+   600                                  [BITS 32]
+   601 00000BB5 EA[BC0B0000]0800                jmp     0x0008:.bit32                           ; CS = 32 bit CS
+   602                                  .bit32:
+   603 00000BBC 66B81000                        mov     ax, 0x0010                              ; DS = 32 bit DS
+   604 00000BC0 8ED8                            mov     ds, ax
+   605 00000BC2 8EC0                            mov     es, ax
+   606 00000BC4 8ED0                            mov     ss, ax
+   607                                  
+   608                                          ; reset register saved before and complete migration
+   609 00000BC6 8B25[F10B0000]                  mov     esp, [.esp_saved]                       ; return ESP register
+   610 00000BCC A1[ED0B0000]                    mov     eax, [.cr0_saved]                       ; return CR0 register
+   611 00000BD1 0F22C0                          mov     cr0, eax
+   612 00000BD4 0F011D[E70B0000]                lidt    [.idtr_save]                            ; return IDTR
+   613                                  
+   614 00000BDB FB                              sti                                             ; enable interrupt
+   615                                  
+   616                                          ; return registers
+   617 00000BDC 61                              popa
+   618                                  
+   619                                          ; destruct stack frame
+   620 00000BDD 89EC                            mov     esp, ebp
+   621 00000BDF 5D                              pop     ebp
+   622                                  
+   623 00000BE0 C3                              ret
+   624                                  
+   625                                  .idtr_real:
+   626 00000BE1 FF03                            dw      0x3FF                                   ; 8 * 256 - 1   : idt_limit
+   627 00000BE3 00000000                        dd      0                                       ; VECT_BASE     : idt location
+   628                                  
+   629                                  .idtr_save:
+   630 00000BE7 0000                            dw      0                                       ; limit
+   631 00000BE9 00000000                        dd      0                                       ; base
+   632                                  
+   633                                  .cr0_saved:
+   634 00000BED 00000000                        dd      0
+   635                                  
+   636                                  .esp_saved:
+   637 00000BF1 00000000                        dd      0
+   638                                  
+   639                                  ;---------------------------------------------------------------------------------
+   640                                  ; Padding
+   641                                  ;---------------------------------------------------------------------------------
+   642 00000BF5 00<rept>                        times   BOOT_SIZE - ($ - $$) - 16  db  0
+   643                                  
+   644 00001FF0 [030B0000]                      dd      TO_REAL_MODE                            ; read mode migration progaram
+   645                                  
+   646                                  ;---------------------------------------------------------------------------------
+   647                                  ; Padding
+   648                                  ;---------------------------------------------------------------------------------
+   649                                  
+   650 00001FF4 00<rept>                        times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte
