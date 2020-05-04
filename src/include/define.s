@@ -36,3 +36,6 @@
         CR3_TASK_4      equ     0x0020_0000                     ; page conversion table: for task 4
         CR3_TASK_5      equ     0x0020_2000                     ; page conversion table: for task 5
         CR3_TASK_6      equ     0x0020_4000                     ; page conversion table: for task 6
+
+        ATTR_ARCHIVE    equ     0x20
+        ATTR_VOLUME_ID  equ     0x08

@@ -50,15 +50,15 @@ ipl:
         mov     ss, ax
         mov     sp, BOOT_LOAD
 
-        sti                                 ;割り込みの許可
+        sti                                     ; enable interrupt
 
-        ;ブートドライブ番号の保存
+        ; save boot drive no.
 
-        mov     [BOOT + drive.no], dl       ;ブートドライブを保存
+        mov     [BOOT + drive.no], dl           ; save boot drive
 
-        ;文字列の表示
+        ; put char
 
-        cdecl   puts, .s0                   ;puts(.s0)
+        cdecl   puts, .s0                       ;puts(.s0)
 
         ;残りのセクタをすべて読み込む
 
@@ -413,6 +413,125 @@ CODE_32:
 
         ; jump to Kernel Process
         jmp     KERNEL_LOAD
+
+;-------------------------------------------------------------------------------------------
+; migrating to real mode program
+;-------------------------------------------------------------------------------------------
+TO_REAL_MODE:
+
+        ; construct stack frame
+                                                        ;    +20 | *p(address to strings)
+                                                        ;    +16 | color
+        push    ebp                                     ;    +12 | row
+        mov     ebp, esp                                ;    + 8 | column
+
+        ; save registers
+        pusha
+
+        cli                                             ; disable interrupt
+
+        ; save current settings
+        mov     eax, cr0
+        mov     [.cr0_saved], eax                       ; save cr0 register
+        mov     [.esp_saved], esp                       ; save esp register
+        sidt    [.idtr_save]                            ; save IDTR
+        lidt    [.idtr_real]                            ; set interrupt during real mode
+
+        ; migrate to 16bit protect mode
+        jmp     0x0018:.bit16                           ; CS = 0x18
+
+[BITS 16]
+.bit16:
+        mov     ax, 0x0020                              ; DS = 0x20
+        mov     ds, ax
+        mov     es, ax
+        mov     ss, ax
+
+        ; migrate to real mode(disable paging)
+        mov     eax, cr0
+        and     eax, 0x7FFFF_FFFE                       ; clear PG/PE bits
+        mov     cr0, eax
+        jmp     $ + 2                                   ; Flush()
+
+        ; set up segment(real mode)
+        jmp     0:.real                                 ; CS = 0x0000
+.real:
+        mov     ax, 0x0000
+        mov     ds, ax
+        mov     es, ax
+        mov     ss, ax
+        mov     sp, 0x7C00
+
+        ; read file
+        cdecl   read_file
+
+        ; migrate to 16 bit protect mode
+        mov     eax, cr0
+        or      eax, 1                                  ; set PE bit
+        mov     cr0, eax
+        jmp     $ + 2                                   ; Flush()
+
+        ; migrate to 32 bit protect mode
+        DB      0x66                                    ; 32 bit override
+[BITS 32]
+        jmp     0x0008:.bit32                           ; CS = 32 bit CS
+.bit32:
+        mov     ax, 0x0010                              ; DS = 32 bit DS
+        mov     ds, ax
+        mov     es, ax
+        mov     ss, ax
+
+        ; reset register saved before and complete migration
+        mov     esp, [.esp_saved]                       ; return ESP register
+        mov     eax, [.cr0_saved]                       ; return CR0 register
+        mov     cr0, eax
+        lidt    [.idtr_save]                            ; return IDTR
+
+        sti                                             ; enable interrupt
+
+        ; return registers
+        popa
+
+        ; destruct stack frame
+        mov     esp, ebp
+        pop     ebp
+
+        ret
+
+.idtr_real:
+        dw      0x3FF                                   ; 8 * 256 - 1   : idt_limit
+        dd      0                                       ; VECT_BASE     : idt location
+
+.idtr_save:
+        dw      0                                       ; limit
+        dd      0                                       ; base
+
+.cr0_saved:
+        dd      0
+
+.esp_saved:
+        dd      0
+
+
+
+
+
+
+
+
+
+
+
+
+
+read_file:
+
+        cdecl   memcpy, 0x7800, .s0, .s1 - .s0
+
+        ret
+
+.s0:    db      'File not found.', 0
+.s1:
 
         ; Padding
         times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte

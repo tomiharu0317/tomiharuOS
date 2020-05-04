@@ -213,6 +213,8 @@ TSS_6:
 GDT:            dq  0x0000000000000000
 .cs_kernel:     dq  0x00CF9A000000FFFF                          ; CODE 4G
 .ds_kernel:     dq  0x00CF92000000FFFF                          ; DATA 4G
+.cs_bit16:      dq  0x000F9A000000FFFF                          ; code segment(16 bit segment) // offset:0x18
+.ds_bit16:      dq  0x000F92000000FFFF                          ; data segment(16 bit segment) // offset:0x20
 .ldt            dq  0x0000820000000000                          ; LDT descriptor
 .tss_0:         dq  0x0000890000000067                          ; TSS descriptor
 .tss_1:         dq  0x0000890000000067                          ; TSS descriptor
