@@ -9,14 +9,13 @@
 ; entry point
 
 entry:
-        jmp     ipl
 
 ; BIOS Parameter Block
 
 
         jmp     ipl                             ; 0x00( 3) jmp instruction to boot code
         times 3 - ($ - $$) db 0x90
-        db      ' OEM-NAME'                     ; 0x03( 8) OEM name
+        db      'OEM-NAME'                      ; 0x03( 8) OEM name
 
         dw      512                             ; 0x0B( 2) num of byte of sector
         db      1                               ; 0x0D( 1) num of sector of cluster
@@ -121,6 +120,9 @@ ACPI_DATA:
 %include    "../modules/real/kbc.s"
 %include    "../modules/real/lba_chs.s"
 %include    "../modules/real/read_lba.s"
+%include    "../modules/real/memcpy.s"
+%include    "../modules/real/memcmp.s"
+
 
 
 
@@ -351,6 +353,18 @@ stage_6:
 .s0:    db      "6th stage...", 0x0A, 0x0D, 0x0A, 0x0D
         db      " [Push SPACE key to protect mode...]", 0x0A, 0x0D, 0
 
+
+; read file func-------------------------------------
+read_file:
+
+        cdecl   memcpy, 0x7800, .s0, .s1 - .s0
+
+        ret
+
+.s0:    db      'File not found.', 0
+.s1:
+;-----------------------------------------------------
+
 ;
 ; GLOBAL DESCRIPTOR TABLE
 ;
@@ -449,7 +463,7 @@ TO_REAL_MODE:
 
         ; migrate to real mode(disable paging)
         mov     eax, cr0
-        and     eax, 0x7FFFF_FFFE                       ; clear PG/PE bits
+        and     eax, 0x7FFF_FFFE                       ; clear PG/PE bits
         mov     cr0, eax
         jmp     $ + 2                                   ; Flush()
 
@@ -512,26 +526,15 @@ TO_REAL_MODE:
 .esp_saved:
         dd      0
 
+;---------------------------------------------------------------------------------
+; Padding
+;---------------------------------------------------------------------------------
+        times   BOOT_SIZE - ($ - $$) - 16  db  0
 
+        dd      TO_REAL_MODE                            ; read mode migration progaram
 
+;---------------------------------------------------------------------------------
+; Padding
+;---------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-read_file:
-
-        cdecl   memcpy, 0x7800, .s0, .s1 - .s0
-
-        ret
-
-.s0:    db      'File not found.', 0
-.s1:
-
-        ; Padding
         times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte
