@@ -1,6 +1,6 @@
 read_chs:
 
-            ;スタックフレームの構築
+            ; construct stack frame
                                                     ;   +8 | 読み出し先アドレス
                                                     ;   +6 | セクタ数
                                                     ;   +4 | drive構造体のアドレス
@@ -13,7 +13,7 @@ read_chs:
             push    3
             push    0
 
-            ;レジスタの保存
+            ; save registers
 
             push    bx
             push    cx
@@ -21,7 +21,7 @@ read_chs:
             push    es
             push    si
 
-            ;処理
+            ; main process
             mov     si, [bp + 4]                    ;構造体のアドレス
 
             ;CXレジスタの設定
