@@ -1,4 +1,4 @@
-;マクロ
+; macro
 
 %include    "../include/define.s"
 %include    "../include/macro.s"
@@ -6,14 +6,37 @@
         ORG     BOOT_LOAD
 
 
-;エントリポイント
+; entry point
 
 entry:
         jmp     ipl
 
 ; BIOS Parameter Block
 
-        times 90 - ($ - $$) db 0x90
+
+        jmp     ipl                             ; 0x00( 3) jmp instruction to boot code
+        times 3 - ($ - $$) db 0x90
+        db      ' OEM-NAME'                     ; 0x03( 8) OEM name
+
+        dw      512                             ; 0x0B( 2) num of byte of sector
+        db      1                               ; 0x0D( 1) num of sector of claster
+        dw      32                              ; 0x0E( 2) num of reserved sector
+        db      2                               ; 0x10( 1) num of FAT
+        dw      512                             ; 0x11( 2) num of root entry
+        dw      0xFFF0                          ; 0x13( 2) total sector:16
+        db      0xF8                            ; 0x15( 1) media type
+        dw      256                             ; 0x16( 2) num of sector of FAT
+        dw      0x10                            ; 0x18( 2) num of sector of track
+        dw      2                               ; 0x1A( 2) num of head
+        dd      0                               ; 0x1C( 4) num of hidden sector
+
+        dd      0                               ; 0x20( 4) total sector:32
+        db      0x80                            ; 0x24( 1) drive no.
+        db      0                               ; 0x25( 1) (reserved)
+        db      0x29                            ; 0x26( 1) boot flag
+        dd      0xbeef                          ; 0x27( 4) serial number
+        db      'BOOTABLE   '                   ; 0x2B(11) volume rabel
+        db      'FAT16   '                      ; 0x36( 8) FAT type
 
 ; Initial Program Loader
 
