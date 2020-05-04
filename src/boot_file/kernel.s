@@ -161,6 +161,21 @@ kernel:
 
                 ; display key code
                 cdecl   draw_key, 2, 29, _KEY_BUFF
+
+                ; the process when the exact key is pressed
+                mov     al, [.int_key]
+                cmp     al, 0x02                            ; key[0x02] == '1'
+                jne     .12E
+
+                ; read file
+                call    [BOOT_LOAD + BOOT_SIZE - 16]        ; read mode transition file
+
+                ; display contents of file
+                mov     esi, 0x7800                         ; ESI = read dest address
+                mov     [esi + 32], byte 0
+                cdecl   draw_str, 0, 0, 0x0F04, esi
+.12E:
+
 .10E:
 
                 jmp     .10L
@@ -214,7 +229,13 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/wait_tick.s"
 %include    "../modules/protect/memcpy.s"
 
-
+;-------------------------------------------------------------------------------------------------
 ; PADDING
-
+;-------------------------------------------------------------------------------------------------
             times   KERNEL_SIZE - ($ - $$)      db 0x00     ; size of kernel // 8K byte
+
+;-------------------------------------------------------------------------------------------------
+; FAT
+;-------------------------------------------------------------------------------------------------
+
+%include    "fat.s"

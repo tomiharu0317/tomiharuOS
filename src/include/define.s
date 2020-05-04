@@ -37,5 +37,17 @@
         CR3_TASK_5      equ     0x0020_2000                     ; page conversion table: for task 5
         CR3_TASK_6      equ     0x0020_4000                     ; page conversion table: for task 6
 
+;------------------------------------------------------------------------------------------------------
+; FAT settings
+;------------------------------------------------------------------------------------------------------
+
+        FAT_SIZE        equ             (1024 * 128)            ; FAT-1/2
+        ROOT_SIZE       equ             (1024 * 16)
+
+	FAT1_START      equ		(KERNEL_SIZE)
+	FAT2_START      equ		(FAT1_START + FAT_SIZE)
+	ROOT_START      equ		(FAT2_START + FAT_SIZE)
+	FILE_START      equ		(ROOT_START + ROOT_SIZE)
+
         ATTR_ARCHIVE    equ     0x20
         ATTR_VOLUME_ID  equ     0x08
