@@ -476,8 +476,40 @@ TO_REAL_MODE:
         mov     ss, ax
         mov     sp, 0x7C00
 
+        ; set up interrupt mask(for real mode)
+        outp    0x20, 0x11                              ; MASTER.ICW1 = 0x11
+        outp    0x21, 0x08                              ; MASTER.ICW2 = 0x08
+        outp    0x21, 0x04                              ; MASTER.ICW3 = 0x04
+        outp    0x21, 0x01                              ; MASTER.ICW4 = 0x01
+
+        outp    0xA0, 0x11                              ; SLAVE.ICW1 = 0x11
+        outp    0xA1, 0x10                              ; SLAVE.ICW2 = 0x10
+        outp    0xA1, 0x02                              ; SLAVE.ICW3 = 0x02
+        outp    0xA1, 0x01                              ; SLAVE.ICW4 = 0x01
+
+        outp    0x21, 0b_1011_1000                      ; interrupt enable : FDD/slave PIC/KBC/Timer
+        outp    0xA1, 0b_1011_1111                      ; interrupt enable : HDD
+
+        sti
+
         ; read file
         cdecl   read_file
+
+        ; set up interrupt mask(for protect mode)
+        cli
+
+        outp    0x20, 0x11                              ; MASTER.ICW1 = 0x11
+        outp    0x21, 0x20                              ; MASTER.ICW2 = 0x20
+        outp    0x21, 0x04                              ; MASTER.ICW3 = 0x04
+        outp    0x21, 0x01                              ; MASTER.ICW4 = 0x01
+
+        outp    0xA0, 0x11                              ; SLAVE.ICW1 = 0x11
+        outp    0xA1, 0x28                              ; SLAVE.ICW2 = 0x28
+        outp    0xA1, 0x02                              ; SLAVE.ICW3 = 0x02
+        outp    0xA1, 0x01                              ; SLAVE.ICW4 = 0x01
+
+        outp    0x21, 0b_1111_1000                      ; interrupt enable : slave PIC/KBC/Timer
+        outp    0xA1, 0b_1111_1110                      ; interrupt enable : RTC
 
         ; migrate to 16 bit protect mode
         mov     eax, cr0
