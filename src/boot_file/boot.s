@@ -35,7 +35,7 @@ entry:
         db      0                               ; 0x25( 1) (reserved)
         db      0x29                            ; 0x26( 1) boot flag
         dd      0xbeef                          ; 0x27( 4) serial number
-        db      'BOOTABLE   '                   ; 0x2B(11) volume rabel
+        db      'BOOTABLE   '                   ; 0x2B(11) volume label
         db      'FAT16   '                      ; 0x36( 8) FAT type
 
 ; Initial Program Loader
