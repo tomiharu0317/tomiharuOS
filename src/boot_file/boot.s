@@ -365,7 +365,7 @@ read_file:
         cdecl   memcpy, 0x7800, .s0, .s1 - .s0
 
         ; read the sector of root directory
-        mov     bx, 32 + 32 + 256                               ; (reserved sect) + (FAT0) + (FAT1)
+        mov     bx, 32 + 256 + 256                               ; (reserved sect) + (FAT0) + (FAT1)
         mov     cx, (512 * 32) / 512                            ; total sect num of 512 directory entry
 .10L:
 
@@ -411,12 +411,13 @@ fat_find_file:
 
         ; search file name
         cld                                                     ; direction = plus
-        mov     bx, 0                                           ; top sect of file
-        mov     cx, 512 / 32                                    ; num of entry
+        mov     bx, 0                                           ; top sect of file      //initialized value
+        mov     cx, 512 / 32                                    ; num of entry          // a sect/32byte
+        mov     si, 0x7600                                      ; sector address        // reading address
 
 .10L:
         and     [si + 11], byte 0x18                            ; check file type
-        jz      .12E                                            ; if (directory/label) => .12E
+        jnz      .12E                                            ; if (directory/label) => .12E
 
         cdecl   memcmp, si, .s0, 8 + 3                          ; AX = memcmp(compare file name)
         cmp     ax, 0                                           ; if not correspond => .12E
