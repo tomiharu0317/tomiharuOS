@@ -1,18 +1,17 @@
 memcpy:
 
-        ; スタックフレームの構築
+        ; construct stack frame
 
         push    bp
         mov     bp, sp
 
-        
-        ; ローカル変数として使用するレジスタの保存
+        ; save registers used as local variables
 
         push    cx
         push    si
         push    di
 
-        ; バイト単位でのコピー
+        ; copy byte by byte
 
         cld                                 ; DF = 0
         mov     di, [bp + 4]
@@ -21,13 +20,13 @@ memcpy:
 
         rep movsb                           ; while (*DI++ == *SI++) ;
 
-        ; レジスタの復帰
+        ; return registers
 
         pop     di
         pop     si
         pop     cx
 
-        ; スタックフレームの破棄
+        ; destruct stack frame
 
         mov     sp, bp
         pop     bp

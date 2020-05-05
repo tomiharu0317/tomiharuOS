@@ -19,8 +19,8 @@ lba_chs:
             mov     si, [bp + 4]
             mov     di, [bp + 6]
 
-            mov     al,  [si + drive.head]                   ; AL = max head num
-            mul     byte [si + drive.sect]                 ; AX = max head * max sect
+            mov     al,  [si + drive.head]                  ; AL = max head num
+            mul     byte [si + drive.sect]                  ; AX = max head * max sect
             mov     bx, ax                                  ; BX = num of sect per cylinder
 
             mov     dx, 0                                   ; DX = LBA(top 2 byte)

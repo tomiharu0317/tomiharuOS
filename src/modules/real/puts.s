@@ -1,23 +1,23 @@
 puts:
 
-        ;スタックフレームの構築
+        ; construct stack frame
 
         push    bp
-        mov     bp, sp                                  ;  +4 | 文字列へのアドレス
+        mov     bp, sp                                  ;  +4 | address to strings
                                                         ;  +2 | Instruction Pointer
                                                         ;BP+0 | BP
 
-        ;レジスタを保存
+        ; save registers
 
         push    ax
         push    bx
         push    si
 
-        ;引数の取得
+        ; get args
 
-        mov     si, [bp + 4]                            ;Source Index == 文字列へのアドレス
+        mov     si, [bp + 4]                            ;Source Index == address to strings
 
-        ;処理
+        ; main process
 
         mov     ah, 0x0E
         mov     bx, 0x0000
@@ -29,19 +29,19 @@ puts:
                                                         ;   if (0 == AL)
         cmp     al, 0                                   ;       break;
         je      .10E                                    ;
-                                                        ;   Int10(0x0E, AL); //文字出力
+                                                        ;   Int10(0x0E, AL); // input char
         int     0x10                                    ;} while(1);
         jmp     .10L
 
 .10E:
 
-        ;レジスタの復帰
+        ; return registers
 
         pop     si
         pop     bx
         pop     ax
 
-        ;スタックフレームの破棄
+        ; destruct stack frame
 
         mov     sp, bp
         pop     bp

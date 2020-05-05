@@ -646,4 +646,4 @@ TO_REAL_MODE:
 ; Padding
 ;---------------------------------------------------------------------------------
 
-        times   BOOT_SIZE - ($ - $$)       db  0        ;8K byte
+        times   BOOT_SIZE - ($ - $$)       db  0        ; 8K byte

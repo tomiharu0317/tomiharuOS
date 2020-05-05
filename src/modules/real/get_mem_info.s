@@ -1,6 +1,6 @@
 get_mem_info:
 
-            ;レジスタの保存
+            ; save registers
             push    eax
             push    ebx
             push    ecx
@@ -9,35 +9,35 @@ get_mem_info:
             push    di
             push    bp
 
-            ;文字列を表示
+            ; put char
             cdecl   puts, .s0
 
-            mov     bp, 0                           ; lines = 0; //行数
-            mov     ebx, 0                          ; index = 0; //初期化
+            mov     bp, 0                           ; lines = 0; // num of lines
+            mov     ebx, 0                          ; index = 0; // initialization
 .10L:                                               ; do
                                                     ; {
             mov     eax, 0x0000E820                 ;   EAX  = 0xE820;
-            mov     ecx, E820_RECORD_SIZE           ;   ECX  = 要求バイト数;
-            mov     edx, 'PAMS'                     ;   EDX  = 'SMAP' //固定値
-            mov     di, .b0                         ;   ES:DI= 書き込み先
+            mov     ecx, E820_RECORD_SIZE           ;   ECX  = requested bytes;
+            mov     edx, 'PAMS'                     ;   EDX  = 'SMAP' // fixed value
+            mov     di, .b0                         ;   ES:DI= write_dest
             int     0x15                            ;   BIOS(0x15, 0xE820);
                                                     ; }
 
-            cmp     eax, 'PAMS'                     ; コマンド未対応なら終了
+            cmp     eax, 'PAMS'                     ; end if command not supported
             je      .12E
             jmp     .10E
 
 .12E:
 
 
-            jnc     .14E                            ; CF 0:成功 1:失敗
+            jnc     .14E                            ; CF 0:success 1:failure
             jmp     .10E
 .14E:
 
-            cdecl   put_mem_info, di                ; 1レコード分のメモリ情報を表示
+            cdecl   put_mem_info, di                ; display memory info for one record
 
-            ;ACPI data のアドレスを取得
-            mov     eax, [di + 16]                  ; EAX = データタイプ
+            ; get ACPI data address
+            mov     eax, [di + 16]                  ; EAX = data type
             cmp     eax, 3                          ; 3:AddressRangeACPI
             jne     .15E
 
@@ -52,11 +52,11 @@ get_mem_info:
             jz      .16E
 
             inc     bp                              ; lines++
-            and     bp, 0x07                        ; lines &= 0x07; //メモリ情報を8行表示するたびに
-            jnz     .16E                            ;                //ユーザーからのキー入力があるまで
-                                                    ;                //処理を中断
-            cdecl   puts, .s2                       ; 中断メッセージ
-            mov     ah, 0x10                        ; キー入力待ち
+            and     bp, 0x07                        ; lines &= 0x07; // every time 8 lines of memory info are displayed,
+            jnz     .16E                            ;                // the process is suspended
+                                                    ;                // until there is a key input from the user
+            cdecl   puts, .s2                       ; interrupt message
+            mov     ah, 0x10                        ; wait for the key to be pressed
             int     0x16
 
             cdecl   puts, .s3
@@ -68,7 +68,7 @@ get_mem_info:
 
             cdecl   puts, .s1
 
-            ;レジスタの復帰
+            ; return registers
             pop     bp
             pop     di
             pop     si
@@ -90,15 +90,15 @@ ALIGN 4, db 0
 
 put_mem_info:
 
-            ;スタックフレームの構築
-            push    bp                              ;BP +4 | メモリ情報が格納されたバッファアドレス
+            ; construct stack frame
+            push    bp                              ;BP +4 | buffer address of where memory info is stored
             mov     bp, sp
 
-            ;レジスタの保存
+            ; save registers
             push    bx
             push    si
 
-            ;引数の取得
+            ; get args
             mov     si, [bp + 4]
 
             ; Base(64bit)
@@ -117,19 +117,19 @@ put_mem_info:
             cdecl int_to_str, word [si + 18], .p6 + 0, 4, 16, 0b0100
             cdecl int_to_str, word [si + 16], .p6 + 4, 4, 16, 0b0100
 
-            cdecl   puts, .s1                       ; //レコード情報を表示
+            cdecl   puts, .s1                       ; // display record info
 
-            mov     bx, [si + 16]                   ; //タイプを文字列で表示
+            mov     bx, [si + 16]                   ; // display type as string
             and     bx, 0x07                        ; BX = Type(0~5)
-            shl     bx, 1                           ; BX *= 2   //要素サイズに変換
-            add     bx, .t0                         ; BX += .t0 //テーブルの先頭アドレスを加算
+            shl     bx, 1                           ; BX *= 2   // convert to element size
+            add     bx, .t0                         ; BX += .t0 // add the start address of the table
             cdecl   puts, word [bx]
 
-            ;レジスタの復帰
+            ; return registers
             pop     si
             pop     bx
 
-            ;スタックフレームの破棄
+            ; destruct stack frame
             mov     sp, bp
             pop     bp
 

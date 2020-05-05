@@ -1,15 +1,15 @@
 int_to_str:
 
-        ;construct stack frame
+        ; construct stack frame
 
         push    bp
-        mov     bp, sp                          ;  +12|フラグ
-                                                ;  +10|基数
-                                                ;  + 8|保存先バッファサイズ
-                                                ;  + 6|保存先バッファアドレス
-                                                ;  + 4|変換する値
-                                                ;  + 2|IP(戻り番地)
-                                                ;BP+ 0|BP
+        mov     bp, sp                          ;  +12| flag
+                                                ;  +10| radix
+                                                ;  + 8| save_dest buffer size
+                                                ;  + 6| save_dest buffer address
+                                                ;  + 4| the value to convert
+                                                ;  + 2| IP
+                                                ;BP+ 0| BP
         ; save registers
         push    ax
         push    bx
@@ -20,77 +20,77 @@ int_to_str:
 
         ; get args
 
-        mov     ax, [bp + 4]                    ;val = 数値
-        mov     si, [bp + 6]                    ;dest= バッファアドレス
-        mov     cx, [bp + 8]                    ;size= バッファサイズ
+        mov     ax, [bp + 4]                    ; val = value
+        mov     si, [bp + 6]                    ; dest= buffer address
+        mov     cx, [bp + 8]                    ; size= buffer size
 
-        mov     di, si                          ;バッファの最後尾
-        add     di, cx                          ;dest = &dest[size - 1]
+        mov     di, si                          ; the end of buffer
+        add     di, cx                          ; dest = &dest[size - 1]
         dec     di
 
-        mov     bx, word [bp + 12]              ;flags = フラグ
-                                                ;B2: 空白をゼロで埋める B1:+/-記号を付加する B0:値を符号付き変数として扱う
+        mov     bx, word [bp + 12]              ; flags
+                                                ; B2: fill blanks with zeros B1:+/- add sign B0:treat the value as a signed variable
 
-        ;符号付き判定
+        ; judge wether signed or not
 
-        test    bx, 0b0001                      ; if (flags & 0x01) //符号付きならZF = 0
-.10Q    je      .10E                            ; {                 //符号なしならZF = 1だからjmp
-        cmp     ax, 0                           ;   if (val < 0)    //CF = 1, ZF = 0
-.12Q    jge     .12E                            ;   {               //val >= 0 なら必要ないのでjmp
-        or      bx, 0b0010                      ;       flags |= 2; //B1をセット
-                                                ;}}
+        test    bx, 0b0001                      ; if (flags & 0x01) // if sined ZF = 0
+.10Q    je      .10E                            ; {                 // if not   ZF = 1 and jmp
+        cmp     ax, 0                           ;   if (val < 0)    // CF = 1, ZF = 0
+.12Q    jge     .12E                            ;   {               // if val >= 0 jmp(cuz no necescity)
+        or      bx, 0b0010                      ;       flags |= 2; // set B1
+                                                ; }}
 .12E:
 .10E:
 
-        ;符号出力判定
+        ; sing output judgement
 
         test    bx, 0b0010
 .20Q    je      .20E
         cmp     ax, 0
 .22Q    jge     .22F
-        neg     ax                              ;符号反転
-        mov     [si], byte '-'                  ;符号表示
+        neg     ax                              ; sign inversion
+        mov     [si], byte '-'                  ; display sign
         jmp     .22E
 .22F:
         mov     [si], byte '+'
 .22E:
-        dec     cx                              ;残りバッファサイズの減算 -> ?
+        dec     cx                              ; subtract remaining buffer size -> ?
 .20E:
 
-        ;ASCII変換
+        ; ASCII conversion
 
-        mov     bx, [bp + 10]                   ;BX = 基数
+        mov     bx, [bp + 10]                   ; BX = radix
 
-.30L:                                           ;do{
+.30L:                                           ; do{
         mov     dx, 0
         div     bx                              ;   DX = DX:AX % BX;
                                                 ;   AX = DX:AX / BX;
 
-        mov     si, dx                          ;   //変換テーブル参照
+        mov     si, dx                          ;   // refer to conversion table
         mov     dl, byte [.ascii + si]          ;   DL = ASCII[DX];
 
         mov     [di], dl                        ;   *dest = DL;
         dec     di                              ;   dest--;
 
         cmp     ax, 0
-        loopnz  .30L                            ;} while(AX);
+        loopnz  .30L                            ; } while(AX);
 
 .30E:
 
-        ;空欄をゼロ埋め/空白埋め
+        ;fill blanks with zero/blank
 
-        cmp     cx, 0                           ;if (size)
-.40Q:   je      .40E                            ;{
-        mov     al, ' '                         ;   AL = ' '; //空白埋め
+        cmp     cx, 0                           ; if (size)
+.40Q:   je      .40E                            ; {
+        mov     al, ' '                         ;   AL = ' '; // blank fill
         cmp     [bp + 12], word 0b0100          ;   if (flags & 0x04)
 .42Q:   jne     .42E                            ;   {
-        mov     al, '0'                         ;       AL = '0'; //ゼロ埋め
+        mov     al, '0'                         ;       AL = '0'; // zero fill
 .42E:                                           ;   }
-        std                                     ;   // DF = 1(減算)
+        std                                     ;   // DF = 1(subtraction)
         rep stosb                               ;   while (--cx) * DI-- = ' ';
-.40E:                                           ;}
+.40E:                                           ; }
 
-        ;レジスタの復帰
+        ; return registers
 
         pop     di
         pop     si
@@ -99,7 +99,7 @@ int_to_str:
         pop     bx
         pop     ax
 
-        ;スタックフレームの破棄
+        ; destruct stack frame
 
         mov     sp, bp
         pop     bp
@@ -107,4 +107,4 @@ int_to_str:
         ret
 
 
-.ascii  db      "0123456789ABCDEF"              ;変換テーブル
+.ascii  db      "0123456789ABCDEF"              ; conversion table

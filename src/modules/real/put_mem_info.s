@@ -1,14 +1,14 @@
 put_mem_info:
 
-            ;スタックフレームの構築
-            push    bp                              ;BP +4 | メモリ情報が格納されたバッファアドレス
+            ; construct stack frame
+            push    bp                              ;BP +4 | buffer address of where the memory info is stored
             mov     bp, sp
 
-            ;レジスタの保存
+            ; save registers
             push    bx
             push    si
 
-            ;引数の取得
+            ; get args
             mov     si, [bp + 4]
 
             ; Base(64bit)
@@ -27,7 +27,7 @@ put_mem_info:
             cdecl int_to_str, word [si + 18], .p6 + 0, 4, 16, 0x0100
             cdecl int_to_str, word [si + 16], .p6 + 4, 4, 16, 0x0100
 
-            cdecl   puts, .s1                       ; //レコード情報を表示
+            cdecl   puts, .s1                       ; // display record info
 
 .s1:        db  " "
 .p2:        db  "ZZZZZZZZ_"
@@ -36,10 +36,10 @@ put_mem_info:
 .p5:        db  "ZZZZZZZZ "
 .p6:        db  "ZZZZZZZZ ", 0
 
-            mov     bx, [si + 16]                   ; //タイプを文字列で表示
+            mov     bx, [si + 16]                   ; // display type as strings
             and     bx, 0x07                        ; BX = Type(0~5)
-            shl     bx, 1                           ; BX *= 2   //要素サイズに変換
-            add     bx, .t0                         ; BX += .t0 //テーブルの先頭アドレスを加算
+            shl     bx, 1                           ; BX *= 2   // convert to element size
+            add     bx, .t0                         ; BX += .t0 // add the start address of the table
             cdecl   puts, word [bx]
 
 .s4:        db  " (nknown)", 0x0A, 0x0D, 0
@@ -51,11 +51,11 @@ put_mem_info:
 
 .t0:        dw  .s4, .s5, .s6, .s7, .s8, .s4, .s4
 
-            ;レジスタの復帰
+            ; return registers
             pop     si
             pop     bx
 
-            ;スタックフレームの破棄
+            ; destruct stack frame
             mov     sp, bp
             pop     bp
 

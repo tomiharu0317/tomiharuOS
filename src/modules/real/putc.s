@@ -1,30 +1,28 @@
 putc:
 
-        ;スタックフレームの構築
+        ; construct stack frame
 
         push    bp
-        mov     bp, sp                                  ;  +4 | 出力文字
+        mov     bp, sp                                  ;  +4 | input char
                                                         ;  +2 | Instruction Pointer
                                                         ;BP+0 | BP
 
-        ;破壊される可能性のあるレジスタを保存
+        ; save registers
 
         push    ax
         push    bx
-
-        ;処理
 
         mov     al, [bp + 4]
         mov     ah, 0x0E
         mov     bx, 0x0000
         int     0x10
 
-        ;レジスタの復帰
+        ; return registers
 
         pop     bx
         pop     ax
 
-        ;スタックフレームの破棄
+        ; destruct stack frame
 
         mov     sp, bp
         pop     bp

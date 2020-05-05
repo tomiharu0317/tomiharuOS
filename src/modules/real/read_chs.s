@@ -1,13 +1,13 @@
 read_chs:
 
             ; construct stack frame
-                                                    ;   +8 | 読み出し先アドレス
-                                                    ;   +6 | セクタ数
-                                                    ;   +4 | drive構造体のアドレス
-                                                    ;   +2 | 戻り番地
+                                                    ;   +8 | read dest address
+                                                    ;   +6 | num of sector
+                                                    ;   +4 | address of drive structure
+                                                    ;   +2 | IP
                                                     ;BP +0 | BP
-                                                    ;   -2 | retry = 3; //リトライ回数
-                                                    ;   -4 | sect  = 0; //読み込みセクタ数
+                                                    ;   -2 | retry = 3; // retry count
+                                                    ;   -4 | sect  = 0; // num of read sector
             push    bp
             mov     bp, sp
             push    3
@@ -22,27 +22,27 @@ read_chs:
             push    si
 
             ; main process
-            mov     si, [bp + 4]                    ;構造体のアドレス
+            mov     si, [bp + 4]                    ; address of struc
 
-            ;CXレジスタの設定
-            ;[構造体のアドレス + オフセット + ?]
+            ; set up CX register
+            ; [address of struc + offset + ?]
 
-            mov     ch, [si + drive.cyln + 0]       ;CH = シリンダ番号（下位バイト）
-            mov     cl, [si + drive.cyln + 1]       ;CL = シリンダ番号（上位バイト）
-            shl     cl, 6                           ;CL <<= 6; //最上位2ビットにシフト
-            or      cl, [si + drive.sect]           ;CL |= セクタ番号;
+            mov     ch, [si + drive.cyln + 0]       ; CH = cylinder no.(lower byte)
+            mov     cl, [si + drive.cyln + 1]       ; CL = cylinder no.(upper byte)
+            shl     cl, 6                           ; CL <<= 6; // shift to highest 2 bits
+            or      cl, [si + drive.sect]           ; CL |= sect no.;
 
-            ;セクタ読み込み
+            ; read sector
 
-            mov     dh, [si + drive.head]           ;DH = ヘッド番号
-            mov     dl, [si + 0]                    ;DL = ドライブ番号
+            mov     dh, [si + drive.head]           ; DH = head no.
+            mov     dl, [si + 0]                    ; DL = drive no.
             mov     ax, 0x0000
-            mov     es, ax                          ;ESセグメント初期化
-            mov     bx, [bp + 8]                    ;読み出し先アドレス
+            mov     es, ax                          ; initialize ES segment
+            mov     bx, [bp + 8]                    ; read dest address
 
             ; do{
-            ;     AH = セクタ読み込み
-            ;     AL = セクタ数
+            ;     AH = read sect
+            ;     AL = num of sect
 
             ;     CF = BIOS(0x13, 0x02);
             ;     if (CF)
@@ -51,7 +51,7 @@ read_chs:
             ;         break;
             ;     }
 
-            ;     if (読み込んだセクタがある)
+            ;     if (read sect exists)
             ;         break;
 
             ;     ret = 0;
@@ -62,21 +62,21 @@ read_chs:
             mov     al, [bp + 6]
 
             int     0x13
-            jnc     .11E                            ;成功したら.11Eへ
+            jnc     .11E                            ; jump to .11E if succeeded
 
             mov     al, 0
-            jmp     .10E                            ;失敗したらリトライなしで.10Eへ
+            jmp     .10E                            ; jump to .10E without retry if failed
 .11E:
-            cmp     al, 0                           ; if (読み込んだセクタ数 > 0)
+            cmp     al, 0                           ; if (num of read sect > 0)
             jne     .10E                            ;   break;
 
-            mov     ax, 0                           ;戻り値
+            mov     ax, 0                           ; return value
             dec     word [bp - 2]
-            jnz     .10L                            ;読み込んだセクタ数が0なら.10Lへ
+            jnz     .10L                            ; jump to .10L if num of read sect was 0
 .10E:
-            mov     ah, 0                           ;AH = 0 //ステータス情報の破棄
+            mov     ah, 0                           ;AH = 0 // discard starus info
 
-            ;レジスタの復帰
+            ; return registers
 
             pop     si
             pop     es
@@ -84,7 +84,7 @@ read_chs:
             pop     cx
             pop     bx
 
-            ;スタックフレームの破棄
+            ; destruct stack frame
 
             mov     sp, bp
             pop     bp
