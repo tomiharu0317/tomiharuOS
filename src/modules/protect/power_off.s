@@ -1,7 +1,11 @@
 power_off:
 
             ; save registers
-            pusha
+		    push	eax
+		    push	ebx
+		    push	ecx
+		    push	edx
+		    push	esi
 
             ; display 'Power off...'
             cdecl   draw_str, 25, 14, 0x020F, .s0
@@ -99,9 +103,19 @@ power_off:
             cdecl   draw_str, 38, 14, 0x020F, .s4
 
             ; return registers
-            popa
+		    pop		esi
+		    pop		edx
+		    pop		ecx
+		    pop		ebx
+		    pop		eax
 
             ret
+
+.s0:            db  " Power off...   ", 0
+.s1:            db  " 1", 0
+.s2:            db  " 2", 0
+.s3:            db  " 3", 0
+.s4:            db  "NG", 0
 
 ALIGN   4,  db 0
 PM1a_CNT_BLK:   dd 0
@@ -111,10 +125,4 @@ S5_PACKAGE:
 .1:             db 0
 .2:             db 0
 .3:             db 0
-
-.s0:            db  " Power off...    ", 0
-.s1:            db  " 1", 0
-.s2:            db  " 2", 0
-.s3:            db  " 3", 0
-.s4:            db  "NG", 0
 

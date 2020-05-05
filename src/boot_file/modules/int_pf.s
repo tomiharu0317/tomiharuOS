@@ -9,6 +9,10 @@ int_pf:
             push    ds
             push    es
 
+            mov     ax, 0x0010
+            mov     ds, ax
+            mov     es, ax
+
             ; confirm the address of what raised exception
             mov     eax, cr2
             and     eax, ~0xFFF                                     ; access within 4K bytes

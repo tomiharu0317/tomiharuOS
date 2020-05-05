@@ -8,6 +8,7 @@ page_set_4m:
             pusha
 
             ; make page directory
+            cld
             mov     edi, [ebp + 8]
             mov     eax, 0x00000000                                 ; // P = 0
             mov     ecx, 1024

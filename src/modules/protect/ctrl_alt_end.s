@@ -4,8 +4,8 @@ ctrl_alt_end:
             push    ebp
             mov     ebp, esp                                        ; EBP +8 | key code
 
-            ; save registers
-            push    eax
+            ; ; save registers
+            ; push    eax
 
             ; save key state
             mov     eax, [ebp + 8]
@@ -34,11 +34,11 @@ ctrl_alt_end:
 .20E:
             sar     eax, 8                                          ; ret >>= 8 // MSB = MSB, CF = LSB
 
-            ; return registers
-            pop     eax
+            ; ; return registers
+            ; pop     eax
 
             ; destruct stack frame
-            mov     ebp, esp
+            mov     esp, ebp
             pop     ebp
 
             ret

@@ -38,6 +38,7 @@ acpi_package_value:
             cmp     al, 0x0A                                    ; {
             jne     .11E                                        ;   AL = *ESI
             mov     al, [esi + 1]                               ;   ESI++
+            inc     esi
 .11E:                                                           ; }
 
             inc     esi                                         ; // next 1 byte

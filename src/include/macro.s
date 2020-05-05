@@ -38,22 +38,6 @@
         out     %1, al
 %endmacro
 
-struc   drive                               ; define parameters by structure when reading sector
-            .no         resw    1           ; drive no.
-            .cyln       resw    1           ; cylinder
-            .head       resw    1           ; head
-            .sect       resw    1           ; sector
-endstruc
-
-%define     RING_ITEM_SIZE      (1 << 4)
-%define     RING_INDEX_MASK     (RING_ITEM_SIZE - 1)
-
-struc   ring_buff
-            .rp         resd    1                       ; RP: Reading Position
-            .wp         resd    1                       ; WP: Writing Position
-            .item       resb    RING_ITEM_SIZE          ; buffer // unit:byte
-endstruc
-
 %macro  set_desc 2-*
             push    eax
             push    edi
@@ -88,6 +72,22 @@ endstruc
             pop     edi
             pop     eax
 %endmacro
+
+struc   drive                               ; define parameters by structure when reading sector
+            .no         resw    1           ; drive no.
+            .cyln       resw    1           ; cylinder
+            .head       resw    1           ; head
+            .sect       resw    1           ; sector
+endstruc
+
+%define     RING_ITEM_SIZE      (1 << 4)
+%define     RING_INDEX_MASK     (RING_ITEM_SIZE - 1)
+
+struc   ring_buff
+            .rp         resd    1                       ; RP: Reading Position
+            .wp         resd    1                       ; WP: Writing Position
+            .item       resb    RING_ITEM_SIZE          ; buffer // unit:byte
+endstruc
 
 struc   rose
             .x0         resd    1                       ; upper left coordinate : X0
