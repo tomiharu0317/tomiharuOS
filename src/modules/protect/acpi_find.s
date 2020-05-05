@@ -7,7 +7,6 @@ acpi_find:
                                                                 ; EBP+ 8 | address
 
             ; save registers
-            push    eax
             push    ecx
             push    edi
 
@@ -40,7 +39,6 @@ acpi_find:
             ; return registers
             pop     edi
             pop     ecx
-            pop     eax
 
             ; destruct stack frame
             mov     esp, ebp
