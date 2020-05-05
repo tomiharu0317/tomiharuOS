@@ -49,69 +49,69 @@ ipl:
         mov     ss, ax
         mov     sp, BOOT_LOAD
 
-        sti                                     ; enable interrupt
+        sti                                                     ; enable interrupt
 
         ; save boot drive no.
 
-        mov     [BOOT + drive.no], dl           ; save boot drive
+        mov     [BOOT + drive.no], dl                           ; save boot drive
 
         ; put char
 
-        cdecl   puts, .s0                       ;puts(.s0)
+        cdecl   puts, .s0                                       ; puts(.s0)
 
-        ;残りのセクタをすべて読み込む
+        ; read all remaining sectors
 
-        mov     bx, BOOT_SECT - 1           ;BX = 残りのブートセクト数
-        mov     cx, BOOT_LOAD + SECT_SIZE   ;CX = 次のロードアドレス
+        mov     bx, BOOT_SECT - 1                               ; BX = num of remaining sectors
+        mov     cx, BOOT_LOAD + SECT_SIZE                       ; CX = next load address
 
-        cdecl   read_chs, BOOT, bx, cx     ;AX = read_chs(BOOT, bx, cx)
+        cdecl   read_chs, BOOT, bx, cx                          ; AX = read_chs(BOOT, bx, cx)
 
         cmp     ax, bx
-.10Q:   jz      .10E                        ;if (ax != 残りのセクタ数)
+.10Q:   jz      .10E                                            ; if (ax != num of remaining sectors)
 
-.10T:   cdecl   puts, .e0                   ;{  puts(.e0);
-        call    reboot                      ;   reboot(); //再起動
+.10T:   cdecl   puts, .e0                                       ; {  puts(.e0);
+        call    reboot                                          ;   reboot(); // reboot
 
-.10E:                                       ;}
+.10E:                                                           ; }
 
-        ;次のステージへ移行
+        ; migrate to next stage
 
-        jmp     stage_2                     ;ブート処理の第2ステージへ
+        jmp     stage_2
 
-        ;データ
+        ; data
 
 .s0     db      "booting...", 0x0A, 0x0D, 0
 .e0     db      "Error: sector read", 0
 
-;ブートドライブに関する情報
+; info about boot drive
 
 ALIGN 2, db 0
 BOOT:
         istruc  drive
-            at  drive.no,       dw 0        ;ドライブ番号
-            at  drive.cyln,     dw 0        ;シリンダ
-            at  drive.head,     dw 0        ;ヘッド
-            at  drive.sect,     dw 2        ;セクタ
+            at  drive.no,       dw 0                            ; drive no.
+            at  drive.cyln,     dw 0                            ; cylinder
+            at  drive.head,     dw 0                            ; head
+            at  drive.sect,     dw 2                            ; sector
         iend
 
-;モジュール(512バイト以降に配置)
+; modules(locate after 512 byte)
 
 %include    "../modules/real/puts.s"
 %include    "../modules/real/reboot.s"
 %include    "../modules/real/read_chs.s"
 
-;ブートフラグ(512biteの終了)
+; boot flag(end of 512 byte)
 
         times   510 - ($ - $$) db 0x00
         db 0x55, 0xAA
 
-;リアルモード時に取得した情報
-FONT:                                           ;フォント
+; info got during real mode
+FONT:                                                           ; font
 .seg:   dw 0
 .off:   dw 0
 ACPI_DATA:
-.adr:   dd 0                                    ; ACPI base address
-.len:   dd 0                                    ;      data length
+.adr:   dd 0                                                    ; ACPI base address
+.len:   dd 0                                                    ; data length
 
 %include    "../modules/real/int_to_str.s"
 %include    "../modules/real/get_drive_params.s"
@@ -126,38 +126,38 @@ ACPI_DATA:
 
 
 
-;ブート処理の第2ステージ
+; second stage of boot process
 
 stage_2:
 
-        ;文字列を表示
+        ; put char
         cdecl   puts, .s0
 
-        ;ドライブ情報を取得
-        cdecl   get_drive_params, BOOT          ;get_drive_params(DX, BOOT.CYLN);
-        cmp     ax, 0                           ;if (0 == AX){
-.10Q:   jne     .10E                            ;       puts(.e0);
-.10T:   cdecl   puts, .e0                       ;       reboot();
-        call    reboot                          ; }
+        ; get drive info
+        cdecl   get_drive_params, BOOT                          ; get_drive_params(DX, BOOT.CYLN);
+        cmp     ax, 0                                           ; if (0 == AX){
+.10Q:   jne     .10E                                            ;        puts(.e0);
+.10T:   cdecl   puts, .e0                                       ;        reboot();
+        call    reboot                                          ;  }
 .10E:
 
-        ;ドライブ情報を表示
-        mov     ax, [BOOT + drive.no]           ;AX = ブートドライブ
+        ; display drive info
+        mov     ax, [BOOT + drive.no]                           ; AX = boot drive
         cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
-        mov     ax, [BOOT + drive.cyln]           ;
+        mov     ax, [BOOT + drive.cyln]
         cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
-        mov     ax, [BOOT + drive.head]           ;AX = ヘッド数
+        mov     ax, [BOOT + drive.head]                         ; AX = num of heads
         cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
-        mov     ax, [BOOT + drive.sect]           ;AX = トラック当たりのセクタ数
+        mov     ax, [BOOT + drive.sect]                         ; AX = num of sect per track
         cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
         cdecl   puts, .s1
 
 
-        ;処理の終了
+        ; end of process
 
         jmp     stage_3
 
-        ;データ
+        ; data
 
 .s0     db      "2nd stage...", 0x0A, 0x0D, 0
 
@@ -171,37 +171,36 @@ stage_2:
 
 stage_3:
 
-        ;文字列を表示
+        ; put char
         cdecl   puts, .s0
 
-        ;プロテクトモードで使用するフォントは
-        ;BIOSに内蔵されたものを流用する
+        ; The font used in protect mode is the one built into BIOS
 
         cdecl   get_font_adr, FONT
 
-        ;フォントアドレスの表示
+        ; display font address
         cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
         cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
         cdecl   puts, .s1
 
-        ;メモリ情報の取得と表示
-        cdecl   get_mem_info              ;get_mem_info()
+        ; get memory info and display it
+        cdecl   get_mem_info                            ;get_mem_info()
 
         mov     eax, [ACPI_DATA.adr]
         cmp     eax, 0
         je      .10E
 
-        cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ;下位アドレス
-        shr     eax, 16                                 ;EAX >>= 16
-        cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ;上位アドレス
+        cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ; lower address
+        shr     eax, 16                                 ; EAX >>= 16
+        cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ; upper address
 
         cdecl   puts, .s2
 .10E:
 
-        ;処理の終了
+        ; end of process
         jmp     stage_4
 
-        ;データ
+        ; data
 .s0:    db      "3rd stage...", 0x0A, 0x0D, 0
 
 .s1:    db      " Font Address="
