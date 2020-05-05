@@ -242,6 +242,9 @@ RTC_TIME:   dd 0
 %include    "../modules/protect/int_nm.s"
 %include    "../modules/protect/wait_tick.s"
 %include    "../modules/protect/memcpy.s"
+%include    "../modules/protect/acpi_find.s"
+%include    "../modules/protect/find_rsdt_entry.s"
+%include    "../modules/protect/acpi_package_value.s"
 
 ;-------------------------------------------------------------------------------------------------
 ; PADDING
