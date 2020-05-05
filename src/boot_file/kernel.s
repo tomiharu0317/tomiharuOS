@@ -176,6 +176,19 @@ kernel:
                 cdecl   draw_str, 0, 0, 0x0F04, esi
 .12E:
 
+                ; CTRL + ALt + END
+                mov     al, [.int_key]                      ; // key code
+                cdecl   ctrl_alt_end, eax
+                cmp     eax, 0
+                je      .14E                                ; if (eax == 0) => failure
+
+                mov     eax, 0                              ; do POWER_OFF process only once
+                bts     [.once], eax                        ; if (0 == bts(.once))
+                jc      .14E                                ; {
+                cdecl   power_off                           ;   power_off();
+                                                            ; }
+.14E:
+
 .10E:
 
                 jmp     .10L
@@ -187,6 +200,7 @@ kernel:
 
 ALIGN 4, db 0
 .int_key:   dd 0
+.once:      dd 0
 
 ALIGN 4, db 0
 FONT_ADR:   dd 0
