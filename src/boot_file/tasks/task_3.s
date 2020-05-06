@@ -1,107 +1,3 @@
-; fpu_rose_init:
-
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;                                                 ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;             fldpi                               ;   pi     |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-;             fidiv   dword [.c180]               ;   pi/180 |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;                                                 ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;                                                 ;        r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;             fild    dword [.n]                  ;        n |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-;             fidiv   dword [.d]                  ;      n/d |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-;                                                 ; ---------+---------+---------+---------+---------+---------|
-;                                                 ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
-;                                                 ;        k |       r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-;             fild    dword [.A]                  ;        A |       k |       r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-
-; ALIGN 4, db 0
-; .c1000:     dd  1000
-; .c180:      dd  180
-
-; .n: dd 5
-; .d: dd 3
-; .A: dd 90
-
-;--------------------------------------------------------------------------------------------------------------
-; PREPROCESSING
-
-fpu_rose_init:
-
-                                                ;    +16 | d
-                                                ;    +12 | n
-                                                ; EBP+ 8 | A
-            push    ebp
-            mov     ebp, esp
-
-            push    dword 180                   ;    - 4 | dword i = 180
-
-            fldpi
-            fidiv   dword [ebp -  4]
-            fild    dword [ebp + 12]
-            fidiv   dword [ebp + 16]
-            fild    dword [ebp +  8]
-                                                ; ---------+---------+---------+---------+---------+---------|
-                                                ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
-                                                ;        A |       k |       r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-                                                ; ---------+---------+---------+---------+---------+---------|
-
-            mov     esp, ebp
-            pop     ebp
-
-            ret
-
-fpu_rose_update:
-
-            ; construct stack frame
-                                                ;    +16 | t(angle)
-                                                ;    +12 | Y(float)
-                                                ; EBP+ 8 | X(float)
-            push    ebp
-            mov     ebp, esp
-
-            ; save registers
-            push    eax
-            push    ebx
-
-            ; set save_dest of X/Y coordinate
-            mov     eax, [ebp +  8]
-            mov     ebx, [ebp + 12]
-                                                ; ---------+---------+---------+---------+---------+---------|
-                                                ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
-            fild    dword [ebp + 16]            ;       t  |      A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|
-            fmul    st0, st3                    ;      rt  |         |         |         |         |         |
-            fld     st0                         ;      rt  |     rt  |      A  |      k  |      r  |xxxxxxxxx|
-                                                ;   θ=(rt) |  θ=(rt) |      A  |      k  |      r  |xxxxxxxxx|
-                                                ; ---------+---------+---------+---------+---------+---------|
-            fsincos                             ;   cos(θ) |  sin(θ) |      θ  |      A  |      k  |      r  |
-
-            fxch    st2                         ;       θ  |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
-            fmul    st0, st4                    ;      kθ  |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
-            fsin                                ;  sin(kθ) |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
-            fmul    st0, st3                    ; Asin(kθ) |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
-
-            fxch    st2                         ;   cos(θ) |  sin(θ) | Asin(kθ)|      A  |      k  |      r  |
-            fmul    st0, st2                    ;       X  |  sin(θ) | Asin(kθ)|      A  |      k  |      r  |
-            fistp   dword [eax]                 ;   sin(θ) | Asin(kθ)|      A  |      k  |      r  |xxxxxxxxx|
-
-            fmulp   st1, st0                    ;       Y  |      A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|
-            fchs                                ;      -Y  |      A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|
-            fistp   dword [ebx]                 ;       A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
-                                                ; ---------+---------+---------+---------+---------+---------|
-
-            ; return registers
-            pop     ebx
-            pop     eax
-
-            ; destruct stack frame
-            mov     esp, ebp
-            pop     ebp
-
-            ret
 
 task_3:
             ; construct stack frame
@@ -239,10 +135,10 @@ DRAW_PARAM:
     istruc  rose
         at  rose.x0,            dd         248          ; upper left coordinate : X0
         at  rose.y0,            dd          32          ; upper left coordinate : Y0
-        at  rose.x1,            dd         416          ; lower right coordinate : X1
+        at  rose.x1,            dd         424          ; lower right coordinate : X1
         at  rose.y1,            dd         208          ; lower right coordinate : Y1
 
-        at  rose.n,             dd           2          ; variable : n
+        at  rose.n,             dd           3          ; variable : n
         at  rose.d,             dd           1          ; variable : d
 
         at  rose.color_x,       dd         0x0007       ; display color : x axis
@@ -294,3 +190,109 @@ DRAW_PARAM:
 
         at  rose.title,         db         "Task-6", 0  ; title
     iend
+
+
+; fpu_rose_init:
+
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;                                                 ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;             fldpi                               ;   pi     |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+;             fidiv   dword [.c180]               ;   pi/180 |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;                                                 ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;                                                 ;        r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;             fild    dword [.n]                  ;        n |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+;             fidiv   dword [.d]                  ;      n/d |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+;                                                 ; ---------+---------+---------+---------+---------+---------|
+;                                                 ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
+;                                                 ;        k |       r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+;             fild    dword [.A]                  ;        A |       k |       r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+
+; ALIGN 4, db 0
+; .c1000:     dd  1000
+; .c180:      dd  180
+
+; .n: dd 5
+; .d: dd 3
+; .A: dd 90
+
+;--------------------------------------------------------------------------------------------------------------
+; PREPROCESSING
+
+fpu_rose_init:
+
+                                                ;    +16 | d
+                                                ;    +12 | n
+                                                ; EBP+ 8 | A
+            push    ebp
+            mov     ebp, esp
+
+            push    dword 180                   ;    - 4 | dword i = 180
+
+            fldpi
+            fidiv   dword [ebp -  4]
+            fild    dword [ebp + 12]
+            fidiv   dword [ebp + 16]
+            fild    dword [ebp +  8]
+                                                ; ---------+---------+---------+---------+---------+---------|
+                                                ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
+                                                ;        A |       k |       r |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+                                                ; ---------+---------+---------+---------+---------+---------|
+
+            mov     esp, ebp
+            pop     ebp
+
+            ret
+
+fpu_rose_update:
+
+            ; construct stack frame
+                                                ;    +16 | t(angle)
+                                                ;    +12 | Y(float)
+                                                ; EBP+ 8 | X(float)
+            push    ebp
+            mov     ebp, esp
+
+            ; save registers
+            push    eax
+            push    ebx
+
+            ; set save_dest of X/Y coordinate
+            mov     eax, [ebp +  8]
+            mov     ebx, [ebp + 12]
+                                                ; ---------+---------+---------+---------+---------+---------|
+                                                ;      ST0 |     ST1 |     ST2 |     ST3 |     ST4 |     ST5 |
+            fild    dword [ebp + 16]            ;       t  |      A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|
+            fmul    st0, st3                    ;      rt  |         |         |         |         |         |
+            fld     st0                         ;      rt  |     rt  |      A  |      k  |      r  |xxxxxxxxx|
+                                                ;   θ=(rt) |  θ=(rt) |      A  |      k  |      r  |xxxxxxxxx|
+                                                ; ---------+---------+---------+---------+---------+---------|
+            fsincos                             ;   cos(θ) |  sin(θ) |      θ  |      A  |      k  |      r  |
+
+            fxch    st2                         ;       θ  |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
+            fmul    st0, st4                    ;      kθ  |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
+            fsin                                ;  sin(kθ) |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
+            fmul    st0, st3                    ; Asin(kθ) |  sin(θ) |  cos(θ) |      A  |      k  |      r  |
+
+            fxch    st2                         ;   cos(θ) |  sin(θ) | Asin(kθ)|      A  |      k  |      r  |
+            fmul    st0, st2                    ;       X  |  sin(θ) | Asin(kθ)|      A  |      k  |      r  |
+            fistp   dword [eax]                 ;   sin(θ) | Asin(kθ)|      A  |      k  |      r  |xxxxxxxxx|
+
+            fmulp   st1, st0                    ;       Y  |      A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|
+            fchs                                ;      -Y  |      A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|
+            fistp   dword [ebx]                 ;       A  |      k  |      r  |xxxxxxxxx|xxxxxxxxx|xxxxxxxxx|
+                                                ; ---------+---------+---------+---------+---------+---------|
+
+            ; return registers
+            pop     ebx
+            pop     eax
+
+            ; destruct stack frame
+            mov     esp, ebp
+            pop     ebp
+
+            ret
