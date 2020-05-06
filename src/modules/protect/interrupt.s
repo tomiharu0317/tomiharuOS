@@ -69,14 +69,14 @@ int_stop:
             ; infinite loop
             jmp     $
 
-.s1         db  "ESP+ 0:"
-.p1         db  "________ ", 0
-.s2         db  "   + 4:"
-.p2         db  "________ ", 0
-.s3         db  "   + 8:"
-.p3         db  "________ ", 0
-.s4         db  "   +12:"
-.p4         db  "________ ", 0
+.s1:        db  "ESP+ 0:"
+.p1:        db  "________ ", 0
+.s2:        db  "   + 4:"
+.p2:        db  "________ ", 0
+.s3:        db  "   + 8:"
+.p3:        db  "________ ", 0
+.s4:        db  "   +12:"
+.p4:        db  "________ ", 0
 
 int_default:
             pushf                                                   ; EFLAGS
@@ -86,7 +86,7 @@ int_default:
             mov     eax, .s0                                        ; interrupt type
             iret
 
-.s0         db  " <    STOP    > ", 0
+.s0:        db  " <    STOP    > ", 0
 
 int_zero_div:
             pushf                                                   ; EFLAGS
@@ -96,6 +96,6 @@ int_zero_div:
             mov     eax, .s0                                        ; interrupt type
             iret
 
-.s0         db  " <  ZERO DIV  > ", 0
+.s0:        db  " <  ZERO DIV  > ", 0
 
 
