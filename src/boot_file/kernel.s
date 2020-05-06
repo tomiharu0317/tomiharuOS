@@ -65,8 +65,8 @@ kernel:
                 cdecl   int_en_timer0
 
                 ; set up IMR(Interrupt Mask Register)
-                outp    0x21, 0b1111_1000                       ; interrupt enable: slave PIC/KBC/Timer     // master
-                outp    0xA1, 0b1111_1110                       ; interrupt enable: RTC                     // slave
+                outp    0x21, 0b_1111_1000                       ; interrupt enable: slave PIC/KBC/Timer     // master
+                outp    0xA1, 0b_1111_1110                       ; interrupt enable: RTC                     // slave
 
                 ; register page table
                 mov     eax, CR3_BASE
@@ -178,9 +178,10 @@ kernel:
 
                 ; CTRL + ALt + END
                 mov     al, [.int_key]                      ; // key code
-                cdecl   ctrl_alt_end, eax
-                cmp     eax, 0
-                je      .14E                                ; if (eax == 0) => failure
+                ; cdecl   ctrl_alt_end, eax
+                ; cmp     eax, 0
+                cmp     al, 0x03
+                jne      .14E                                ; if (eax == 0) => failure
 
                 mov     eax, 0                              ; do POWER_OFF process only once
                 bts     [.once], eax                        ; if (0 == bts(.once))
