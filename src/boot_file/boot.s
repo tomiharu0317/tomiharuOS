@@ -483,7 +483,7 @@ stage_7:
         jmp     $ + 2                                   ; clear look ahead of cpu instruction
 
 [BITS 32]
-        db      0x66                                    ; Operand Size Override prefix
+        DB      0x66                                    ; Operand Size Override prefix
         jmp     SEL_CODE:CODE_32                        ; FAR jump // segment:offset
 
 CODE_32:
