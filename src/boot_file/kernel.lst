@@ -632,7 +632,7 @@
    176 000002B1 10                 
    177                                  .12E:
    178                                  
-   179                                                  ; CTRL + ALt + END
+   179                                                  ; CTRL + ALt + END => '2'(temp)
    180 000002B2 A0[E4020000]                            mov     al, [.int_key]                      ; // key code
    181                                                  ; cdecl   ctrl_alt_end, eax
    182                                                  ; cmp     eax, 0
@@ -3317,52 +3317,59 @@
     33                              <1> 
     34 000018FE C3                  <1>         ret
    246                                  %include    "../modules/protect/ctrl_alt_end.s"
-     1                              <1> ctrl_alt_end:
-     2                              <1> 
-     3                              <1>             ; construct stack frame
-     4 000018FF 55                  <1>             push    ebp
-     5 00001900 89E5                <1>             mov     ebp, esp                                        ; EBP +8 | key code
+     1                              <1> ;*****************************************************************
+     2                              <1> ; Warning!
+     3                              <1> ; There is a bug somewhere in this process.
+     4                              <1> ; (probably line[36:39]???)
+     5                              <1> ;*****************************************************************
      6                              <1> 
-     7                              <1>             ; ; save registers
-     8                              <1>             ; push    eax
+     7                              <1> 
+     8                              <1> ctrl_alt_end:
      9                              <1> 
-    10                              <1>             ; save key state
-    11 00001902 8B4508              <1>             mov     eax, [ebp + 8]
-    12 00001905 0FBAF007            <1>             btr     eax, 7                                          ; CF = EAX & 0x80
-    13 00001909 7209                <1>             jc      .10F                                            ; if (0 == CF)
-    14 0000190B 0FAB05[51190000]    <1>             bts     [.key_state], eax                               ; {
-    15 00001912 EB07                <1>             jmp     .10E                                            ;   // set flag
-    16                              <1> .10F:                                                               ; } else {
-    17 00001914 0FB305[51190000]    <1>             btr     [.key_state], eax                               ;   // clear flag
-    18                              <1> .10E:                                                               ; }
-    19                              <1> 
-    20                              <1>             ; judge whether target keys are pressed
-    21 0000191B B81D000000          <1>             mov     eax, 0x1D                                       ; [Ctrl]
-    22 00001920 0FA305[51190000]    <1>             bt      [.key_state], eax                               ; CF = .key_state[0x1D]
-    23 00001927 7321                <1>             jnc     .20E
-    24                              <1> 
-    25 00001929 B838000000          <1>             mov     eax, 0x38                                       ; [Alt]
-    26 0000192E 0FA305[51190000]    <1>             bt      [.key_state], eax
-    27 00001935 7313                <1>             jnc     .20E
-    28                              <1> 
-    29 00001937 B84F000000          <1>             mov     eax, 0x4F                                       ; [End]
-    30 0000193C 0FA305[51190000]    <1>             bt      [.key_state], eax
-    31 00001943 7305                <1>             jnc     .20E
-    32                              <1> 
-    33 00001945 B8FFFFFFFF          <1>             mov     eax, -1                                         ; if (get target key code) return -1;
-    34                              <1> .20E:
-    35 0000194A C1F808              <1>             sar     eax, 8                                          ; ret >>= 8 // MSB = MSB, CF = LSB
-    36                              <1> 
-    37                              <1>             ; ; return registers
-    38                              <1>             ; pop     eax
+    10                              <1>             ; construct stack frame
+    11 000018FF 55                  <1>             push    ebp
+    12 00001900 89E5                <1>             mov     ebp, esp                                        ; EBP +8 | key code
+    13                              <1> 
+    14                              <1>             ; ; save registers
+    15                              <1>             ; push    eax
+    16                              <1> 
+    17                              <1>             ; save key state
+    18 00001902 8B4508              <1>             mov     eax, [ebp + 8]
+    19 00001905 0FBAF007            <1>             btr     eax, 7                                          ; CF = EAX & 0x80
+    20 00001909 7209                <1>             jc      .10F                                            ; if (0 == CF)
+    21 0000190B 0FAB05[51190000]    <1>             bts     [.key_state], eax                               ; {
+    22 00001912 EB07                <1>             jmp     .10E                                            ;   // set flag
+    23                              <1> .10F:                                                               ; } else {
+    24 00001914 0FB305[51190000]    <1>             btr     [.key_state], eax                               ;   // clear flag
+    25                              <1> .10E:                                                               ; }
+    26                              <1> 
+    27                              <1>             ; judge whether target keys are pressed
+    28 0000191B B81D000000          <1>             mov     eax, 0x1D                                       ; [Ctrl]
+    29 00001920 0FA305[51190000]    <1>             bt      [.key_state], eax                               ; CF = .key_state[0x1D]
+    30 00001927 7321                <1>             jnc     .20E
+    31                              <1> 
+    32 00001929 B838000000          <1>             mov     eax, 0x38                                       ; [Alt]
+    33 0000192E 0FA305[51190000]    <1>             bt      [.key_state], eax
+    34 00001935 7313                <1>             jnc     .20E
+    35                              <1> 
+    36 00001937 B84F000000          <1>             mov     eax, 0x4F                                       ; [End]
+    37 0000193C 0FA305[51190000]    <1>             bt      [.key_state], eax
+    38 00001943 7305                <1>             jnc     .20E
     39                              <1> 
-    40                              <1>             ; destruct stack frame
-    41 0000194D 89EC                <1>             mov     esp, ebp
-    42 0000194F 5D                  <1>             pop     ebp
+    40 00001945 B8FFFFFFFF          <1>             mov     eax, -1                                         ; if (get target key code) return -1;
+    41                              <1> .20E:
+    42 0000194A C1F808              <1>             sar     eax, 8                                          ; ret >>= 8 // MSB = MSB, CF = LSB
     43                              <1> 
-    44 00001950 C3                  <1>             ret
-    45                              <1> 
-    46 00001951 00<rept>            <1> .key_state: times 32 db 0
+    44                              <1>             ; ; return registers
+    45                              <1>             ; pop     eax
+    46                              <1> 
+    47                              <1>             ; destruct stack frame
+    48 0000194D 89EC                <1>             mov     esp, ebp
+    49 0000194F 5D                  <1>             pop     ebp
+    50                              <1> 
+    51 00001950 C3                  <1>             ret
+    52                              <1> 
+    53 00001951 00<rept>            <1> .key_state: times 32 db 0
    247                                  %include    "../modules/protect/power_off.s"
      1                              <1> power_off:
      2                              <1> 
@@ -3737,17 +3744,16 @@
     48 00042036 0000                <1>             dw      ( 0 << 11) | ( 0 << 5) | (0 / 2)            ; +22:updated time
     49 00042038 0100                <1>             dw      ( 0 <<  9) | ( 0 << 5) | ( 1)               ; +24:updated day
     50 0004203A 0200                <1>             dw      2                                           ; +26:first cluster
-    51 0004203C 0B000000            <1>             dd      FILE.end - FILE                             ; +28:file size
+    51 0004203C 07000000            <1>             dd      FILE.end - FILE                             ; +28:file size
     52                              <1> 
     53                              <1> ;----------------------------------------------------------------
     54                              <1> ;   FAT:DATA SPACE
     55                              <1> ;----------------------------------------------------------------
     56 00042040 00<rept>            <1>             times FILE_START - ($ - $$) db 0x00
     57                              <1> ;----------------------------------------------------------------
-    58 00046000 68656C6C6F2C204641- <1> FILE:       db      'hello, FAT!'
-    58 00046009 5421                <1>
-    59 0004600B 00                  <1> .end:       db      0
+    58 00046000 5448414E4B5321      <1> FILE:       db      'THANKS!'
+    59 00046007 00                  <1> .end:       db      0
     60                              <1> 
-    61 0004600C 00<rept>            <1> ALIGN 512, db 0x00
+    61 00046008 00<rept>            <1> ALIGN 512, db 0x00
     62                              <1> 
     63 00046200 00<rept>            <1>             times (512 * 63)    db 0x00

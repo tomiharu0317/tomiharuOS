@@ -176,7 +176,7 @@ kernel:
                 cdecl   draw_str, 0, 0, 0x0F04, esi
 .12E:
 
-                ; CTRL + ALt + END
+                ; CTRL + ALt + END => '2'(temp)
                 mov     al, [.int_key]                      ; // key code
                 ; cdecl   ctrl_alt_end, eax
                 ; cmp     eax, 0
