@@ -14,7 +14,7 @@ ctrl_alt_end:
             bts     [.key_state], eax                               ; {
             jmp     .10E                                            ;   // set flag
 .10F:                                                               ; } else {
-            btc     [.key_state], eax                               ;   // clear flag
+            btr     [.key_state], eax                               ;   // clear flag
 .10E:                                                               ; }
 
             ; judge whether target key pressed
