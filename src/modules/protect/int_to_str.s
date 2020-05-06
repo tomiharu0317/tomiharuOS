@@ -34,9 +34,9 @@ int_to_str:
         ; signing judge
 
         test    ebx, 0b0001                             ; if (flags & 0x01) //if signed => ZF = 0
-.10Q    je      .10E                                    ; {                 //if not ZF = 1 so => jmp
+.10Q:   je      .10E                                    ; {                 //if not ZF = 1 so => jmp
         cmp     eax, 0                                  ;   if (val < 0)    //CF = 1, ZF = 0
-.12Q    jge     .12E                                    ;   {
+.12Q:   jge     .12E                                    ;   {
         or      ebx, 0b0010                             ;       flags |= 2; //set B1
                                                         ; }}
 .12E:
@@ -45,9 +45,9 @@ int_to_str:
         ; sign output judge
 
         test    ebx, 0b0010
-.20Q    je      .20E
+.20Q:   je      .20E
         cmp     eax, 0
-.22Q    jge     .22F
+.22Q:   jge     .22F
         neg     eax                                     ; sign reverse
         mov     [esi], byte '-'                         ; sign display
         jmp     .22E
@@ -87,7 +87,7 @@ int_to_str:
         mov     al, '0'                                 ;       AL = '0'; // padding with zero
 .42E:                                                   ;   }
         std                                             ;   // DF = 1(dec)
-        rep stosb                                       ;   while (--ecx) * edi-- = ' ';
+        rep     stosb                                       ;   while (--ecx) * edi-- = ' ';
 .40E:                                                   ; }
 
         ; return registers
