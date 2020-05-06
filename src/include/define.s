@@ -1,7 +1,7 @@
         BOOT_SIZE       equ     (1024 * 8)                      ; boot size
         KERNEL_SIZE     equ     (1024 * 8)                      ; kernel size
 
-        BOOT_LOAD       equ     0x7c00                          ; where boot program is gonna be loaded
+        BOOT_LOAD       equ     0x7C00                          ; where boot program is gonna be loaded
         BOOT_END        equ     (BOOT_LOAD + BOOT_SIZE)
 
         KERNEL_LOAD     equ     0x0010_1000
@@ -41,13 +41,15 @@
 ; FAT settings
 ;------------------------------------------------------------------------------------------------------
 
-        FAT_SIZE        equ             (1024 * 128)            ; FAT-1/2
-        ROOT_SIZE       equ             (1024 * 16)
+        FAT_SIZE        equ     (1024 * 128)                    ; FAT-1/2
+        ROOT_SIZE       equ     (1024 * 16)
 
-	FAT1_START      equ		(KERNEL_SIZE)
-	FAT2_START      equ		(FAT1_START + FAT_SIZE)
-	ROOT_START      equ		(FAT2_START + FAT_SIZE)
-	FILE_START      equ		(ROOT_START + ROOT_SIZE)
+        ENTRY_SIZE      equ     32
+
+	FAT1_START      equ     (KERNEL_SIZE)
+	FAT2_START      equ     (FAT1_START + FAT_SIZE)
+	ROOT_START      equ     (FAT2_START + FAT_SIZE)
+	FILE_START      equ     (ROOT_START + ROOT_SIZE)
 
         ATTR_ARCHIVE    equ     0x20
         ATTR_VOLUME_ID  equ     0x08
