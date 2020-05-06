@@ -26,12 +26,11 @@
         SP_TASK_5       equ     STACK_BASE + (STACK_SIZE * 6)
         SP_TASK_6       equ     STACK_BASE + (STACK_SIZE * 7)
 
+        CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
+
         PARAM_TASK_4    equ     0x0010_8000                     ; drawing params : for task4
         PARAM_TASK_5    equ     0x0010_9000                     ; drawing params : for task5
         PARAM_TASK_6    equ     0x0010_A000                     ; drawing params : for task6
-
-
-        CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
 
         CR3_TASK_4      equ     0x0020_0000                     ; page conversion table: for task 4
         CR3_TASK_5      equ     0x0020_2000                     ; page conversion table: for task 5
@@ -42,7 +41,7 @@
 ;------------------------------------------------------------------------------------------------------
 
         FAT_SIZE        equ     (1024 * 128)                    ; FAT-1/2
-        ROOT_SIZE       equ     (1024 * 16)
+        ROOT_SIZE       equ     (1024 * 16)                     ; Root Directory space
 
         ENTRY_SIZE      equ     32
 

@@ -15,12 +15,13 @@ int_pf:
 
             ; confirm the address of what raised exception
             mov     eax, cr2
-            and     eax, ~0xFFF                                     ; access within 4K bytes
+            and     eax, ~0x0FFF                                     ; access within 4K bytes
             cmp     eax, 0x0010_7000                                ; if (0x0010_7000 == ptr) => page activation process
             jne     .10F                                            ; if (0x0010_7000 != ptr) => task termination process
 
             ; enable page
             mov     [0x00106000 + 0x107 * 4], dword 0x00107007
+
             cdecl   memcpy, 0x0010_7000, DRAW_PARAM, rose_size
 
             jmp     .10E

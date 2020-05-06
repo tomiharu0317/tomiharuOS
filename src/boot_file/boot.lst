@@ -29,35 +29,34 @@
     26                              <1>         SP_TASK_5       equ     STACK_BASE + (STACK_SIZE * 6)
     27                              <1>         SP_TASK_6       equ     STACK_BASE + (STACK_SIZE * 7)
     28                              <1> 
-    29                              <1>         PARAM_TASK_4    equ     0x0010_8000                     ; drawing params : for task4
-    30                              <1>         PARAM_TASK_5    equ     0x0010_9000                     ; drawing params : for task5
-    31                              <1>         PARAM_TASK_6    equ     0x0010_A000                     ; drawing params : for task6
-    32                              <1> 
-    33                              <1> 
-    34                              <1>         CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
-    35                              <1> 
-    36                              <1>         CR3_TASK_4      equ     0x0020_0000                     ; page conversion table: for task 4
-    37                              <1>         CR3_TASK_5      equ     0x0020_2000                     ; page conversion table: for task 5
-    38                              <1>         CR3_TASK_6      equ     0x0020_4000                     ; page conversion table: for task 6
-    39                              <1> 
-    40                              <1> ;------------------------------------------------------------------------------------------------------
-    41                              <1> ; FAT settings
-    42                              <1> ;------------------------------------------------------------------------------------------------------
-    43                              <1> 
-    44                              <1>         FAT_SIZE        equ     (1024 * 128)                    ; FAT-1/2
-    45                              <1>         ROOT_SIZE       equ     (1024 * 16)
-    46                              <1> 
-    47                              <1>         ENTRY_SIZE      equ     32
-    48                              <1> 
-    49                              <1> 	FAT1_START      equ     (KERNEL_SIZE)
-    50                              <1> 	FAT2_START      equ     (FAT1_START + FAT_SIZE)
-    51                              <1> 	ROOT_START      equ     (FAT2_START + FAT_SIZE)
-    52                              <1> 	FILE_START      equ     (ROOT_START + ROOT_SIZE)
-    53                              <1> 
-    54                              <1>         ATTR_ARCHIVE    equ     0x20
-    55                              <1>         ATTR_VOLUME_ID  equ     0x08
+    29                              <1>         CR3_BASE        equ     0x0010_5000                     ; page conversion table: for task 3
+    30                              <1> 
+    31                              <1>         PARAM_TASK_4    equ     0x0010_8000                     ; drawing params : for task4
+    32                              <1>         PARAM_TASK_5    equ     0x0010_9000                     ; drawing params : for task5
+    33                              <1>         PARAM_TASK_6    equ     0x0010_A000                     ; drawing params : for task6
+    34                              <1> 
+    35                              <1>         CR3_TASK_4      equ     0x0020_0000                     ; page conversion table: for task 4
+    36                              <1>         CR3_TASK_5      equ     0x0020_2000                     ; page conversion table: for task 5
+    37                              <1>         CR3_TASK_6      equ     0x0020_4000                     ; page conversion table: for task 6
+    38                              <1> 
+    39                              <1> ;------------------------------------------------------------------------------------------------------
+    40                              <1> ; FAT settings
+    41                              <1> ;------------------------------------------------------------------------------------------------------
+    42                              <1> 
+    43                              <1>         FAT_SIZE        equ     (1024 * 128)                    ; FAT-1/2
+    44                              <1>         ROOT_SIZE       equ     (1024 * 16)                     ; Root Directory space
+    45                              <1> 
+    46                              <1>         ENTRY_SIZE      equ     32
+    47                              <1> 
+    48                              <1> 	FAT1_START      equ     (KERNEL_SIZE)
+    49                              <1> 	FAT2_START      equ     (FAT1_START + FAT_SIZE)
+    50                              <1> 	ROOT_START      equ     (FAT2_START + FAT_SIZE)
+    51                              <1> 	FILE_START      equ     (ROOT_START + ROOT_SIZE)
+    52                              <1> 
+    53                              <1>         ATTR_ARCHIVE    equ     0x20
+    54                              <1>         ATTR_VOLUME_ID  equ     0x08
      4                                  %include    "../include/macro.s"
-     1                              <1> %macro  cdecl 1-*
+     1                              <1> %macro  cdecl 1-*.nolist
      2                              <1> 
      3                              <1>     %rep  %0 - 1
      4                              <1>         push    %{-1:-1}
@@ -224,69 +223,22 @@
     57                                  
     58                                          ; put char
     59                                  
-    60                                          cdecl   puts, .s0                                       ; puts(.s0)
-    60                              <1> 
-    60                              <1>  %rep %0 - 1
-    60                              <1>  push %-1:-1
-    60                              <1>  %rotate -1
-    60                              <1>  %endrep
-    60 00000050 68[7D00]            <2>  push %-1:-1
-    60                              <2>  %rotate -1
-    60                              <1>  %rotate -1
-    60                              <1> 
-    60 00000053 E85000              <1>  call %1
-    60                              <1> 
-    60                              <1>  %if 1 < %0
-    60 00000056 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    60                              <1>  %endif
-    60                              <1> 
+    60 00000050 68[7D00]E8500083C4-             cdecl   puts, .s0                                       ; puts(.s0)
+    60 00000058 02                 
     61                                  
     62                                          ; read all remaining sectors
     63                                  
     64 00000059 BB0F00                          mov     bx, BOOT_SECT - 1                               ; BX = num of remaining sectors
     65 0000005C B9007E                          mov     cx, BOOT_LOAD + SECT_SIZE                       ; CX = next load address
     66                                  
-    67                                          cdecl   read_chs, BOOT, bx, cx                          ; AX = read_chs(BOOT, bx, cx)
-    67                              <1> 
-    67                              <1>  %rep %0 - 1
-    67                              <1>  push %-1:-1
-    67                              <1>  %rotate -1
-    67                              <1>  %endrep
-    67 0000005F 51                  <2>  push %-1:-1
-    67                              <2>  %rotate -1
-    67 00000060 53                  <2>  push %-1:-1
-    67                              <2>  %rotate -1
-    67 00000061 68[9E00]            <2>  push %-1:-1
-    67                              <2>  %rotate -1
-    67                              <1>  %rotate -1
-    67                              <1> 
-    67 00000064 E89D00              <1>  call %1
-    67                              <1> 
-    67                              <1>  %if 1 < %0
-    67 00000067 83C406              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    67                              <1>  %endif
-    67                              <1> 
+    67 0000005F 515368[9E00]E89D00-             cdecl   read_chs, BOOT, bx, cx                          ; AX = read_chs(BOOT, bx, cx)
+    67 00000067 83C406             
     68                                  
     69 0000006A 39D8                            cmp     ax, bx
     70 0000006C 740C                    .10Q:   jz      .10E                                            ; if (ax != num of remaining sectors)
     71                                  
-    72                                  .10T:   cdecl   puts, .e0                                       ; {  puts(.e0);
-    72                              <1> .10T: 
-    72                              <1> 
-    72                              <1>  %rep %0 - 1
-    72                              <1>  push %-1:-1
-    72                              <1>  %rotate -1
-    72                              <1>  %endrep
-    72 0000006E 68[8A00]            <2>  push %-1:-1
-    72                              <2>  %rotate -1
-    72                              <1>  %rotate -1
-    72                              <1> 
-    72 00000071 E83200              <1>  call %1
-    72                              <1> 
-    72                              <1>  %if 1 < %0
-    72 00000074 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    72                              <1>  %endif
-    72                              <1> 
+    72 0000006E 68[8A00]E8320083C4-     .10T:   cdecl   puts, .e0                                       ; {  puts(.e0);
+    72 00000076 02                 
     73 00000077 E84B00                          call    reboot                                          ;   reboot(); // reboot
     74                                  
     75                                  .10E:                                                           ; }
@@ -371,22 +323,8 @@
      2                              <1> 
      3                              <1>         ; display message
      4                              <1> 
-     5                              <1>         cdecl   puts, .s0                       ;// display rebooting message
-     5                              <2> 
-     5                              <2>  %rep %0 - 1
-     5                              <2>  push %-1:-1
-     5                              <2>  %rotate -1
-     5                              <2>  %endrep
-     5 000000C5 68[E100]            <3>  push %-1:-1
-     5                              <3>  %rotate -1
-     5                              <2>  %rotate -1
-     5                              <2> 
-     5 000000C8 E8DBFF              <2>  call %1
-     5                              <2> 
-     5                              <2>  %if 1 < %0
-     5 000000CB 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-     5                              <2>  %endif
-     5                              <2> 
+     5 000000C5 68[E100]E8DBFF83C4- <1>         cdecl   puts, .s0                       ;// display rebooting message
+     5 000000CD 02                  <1>
      6                              <1> 
      7                              <1>         ; wait for the key to be pressed
      8                              <1> 
@@ -399,22 +337,8 @@
     15                              <1> 
     16                              <1>         ; output a line break
     17                              <1> 
-    18                              <1>         cdecl   puts, .s1
-    18                              <2> 
-    18                              <2>  %rep %0 - 1
-    18                              <2>  push %-1:-1
-    18                              <2>  %rotate -1
-    18                              <2>  %endrep
-    18 000000D6 68[FF00]            <3>  push %-1:-1
-    18                              <3>  %rotate -1
-    18                              <2>  %rotate -1
-    18                              <2> 
-    18 000000D9 E8CAFF              <2>  call %1
-    18                              <2> 
-    18                              <2>  %if 1 < %0
-    18 000000DC 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    18                              <2>  %endif
-    18                              <2> 
+    18 000000D6 68[FF00]E8CAFF83C4- <1>         cdecl   puts, .s1
+    18 000000DE 02                  <1>
     19                              <1> 
     20                              <1>         ; reboot
     21                              <1> 
@@ -757,22 +681,8 @@
     10 000002F7 55                  <1>             push    bp
     11                              <1> 
     12                              <1>             ; put char
-    13                              <1>             cdecl   puts, .s0
-    13                              <2> 
-    13                              <2>  %rep %0 - 1
-    13                              <2>  push %-1:-1
-    13                              <2>  %rotate -1
-    13                              <2>  %endrep
-    13 000002F8 68[8C03]            <3>  push %-1:-1
-    13                              <3>  %rotate -1
-    13                              <2>  %rotate -1
-    13                              <2> 
-    13 000002FB E8A8FD              <2>  call %1
-    13                              <2> 
-    13                              <2>  %if 1 < %0
-    13 000002FE 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    13                              <2>  %endif
-    13                              <2> 
+    13 000002F8 68[8C03]E8A8FD83C4- <1>             cdecl   puts, .s0
+    13 00000300 02                  <1>
     14                              <1> 
     15 00000301 BD0000              <1>             mov     bp, 0                           ; lines = 0; // num of lines
     16 00000304 66BB00000000        <1>             mov     ebx, 0                          ; index = 0; // initialization
@@ -796,22 +706,7 @@
     34 0000032D EB48                <1>             jmp     .10E
     35                              <1> .14E:
     36                              <1> 
-    37                              <1>             cdecl   put_mem_info, di                ; display memory info for one record
-    37                              <2> 
-    37                              <2>  %rep %0 - 1
-    37                              <2>  push %-1:-1
-    37                              <2>  %rotate -1
-    37                              <2>  %endrep
-    37 0000032F 57                  <3>  push %-1:-1
-    37                              <3>  %rotate -1
-    37                              <2>  %rotate -1
-    37                              <2> 
-    37 00000330 E8F900              <2>  call %1
-    37                              <2> 
-    37                              <2>  %if 1 < %0
-    37 00000333 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    37                              <2>  %endif
-    37                              <2> 
+    37 0000032F 57E8F90083C402      <1>             cdecl   put_mem_info, di                ; display memory info for one record
     38                              <1> 
     39                              <1>             ; get ACPI data address
     40 00000336 668B4510            <1>             mov     eax, [di + 16]                  ; EAX = data type
@@ -832,63 +727,21 @@
     55 00000356 83E507              <1>             and     bp, 0x07                        ; lines &= 0x07; // every time 8 lines of memory info are displayed,
     56 00000359 7516                <1>             jnz     .16E                            ;                // the process is suspended
     57                              <1>                                                     ;                // until there is a key input from the user
-    58                              <1>             cdecl   puts, .s2                       ; interrupt message
-    58                              <2> 
-    58                              <2>  %rep %0 - 1
-    58                              <2>  push %-1:-1
-    58                              <2>  %rotate -1
-    58                              <2>  %endrep
-    58 0000035B 68[FF03]            <3>  push %-1:-1
-    58                              <3>  %rotate -1
-    58                              <2>  %rotate -1
-    58                              <2> 
-    58 0000035E E845FD              <2>  call %1
-    58                              <2> 
-    58                              <2>  %if 1 < %0
-    58 00000361 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    58                              <2>  %endif
-    58                              <2> 
+    58 0000035B 68[FF03]E845FD83C4- <1>             cdecl   puts, .s2                       ; interrupt message
+    58 00000363 02                  <1>
     59 00000364 B410                <1>             mov     ah, 0x10                        ; wait for the key to be pressed
     60 00000366 CD16                <1>             int     0x16
     61                              <1> 
-    62                              <1>             cdecl   puts, .s3
-    62                              <2> 
-    62                              <2>  %rep %0 - 1
-    62                              <2>  push %-1:-1
-    62                              <2>  %rotate -1
-    62                              <2>  %endrep
-    62 00000368 68[0A04]            <3>  push %-1:-1
-    62                              <3>  %rotate -1
-    62                              <2>  %rotate -1
-    62                              <2> 
-    62 0000036B E838FD              <2>  call %1
-    62                              <2> 
-    62                              <2>  %if 1 < %0
-    62 0000036E 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    62                              <2>  %endif
-    62                              <2> 
+    62 00000368 68[0A04]E838FD83C4- <1>             cdecl   puts, .s3
+    62 00000370 02                  <1>
     63                              <1> .16E:
     64                              <1> 
     65 00000371 6683FB00            <1>             cmp     ebx, 0
     66 00000375 7593                <1>             jne     .10L
     67                              <1> .10E:
     68                              <1> 
-    69                              <1>             cdecl   puts, .s1
-    69                              <2> 
-    69                              <2>  %rep %0 - 1
-    69                              <2>  push %-1:-1
-    69                              <2>  %rotate -1
-    69                              <2>  %endrep
-    69 00000377 68[CF03]            <3>  push %-1:-1
-    69                              <3>  %rotate -1
-    69                              <2>  %rotate -1
-    69                              <2> 
-    69 0000037A E829FD              <2>  call %1
-    69                              <2> 
-    69                              <2>  %if 1 < %0
-    69 0000037D 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    69                              <2>  %endif
-    69                              <2> 
+    69 00000377 68[CF03]E829FD83C4- <1>             cdecl   puts, .s1
+    69 0000037F 02                  <1>
     70                              <1> 
     71                              <1>             ; return registers
     72 00000380 5D                  <1>             pop     bp
@@ -938,288 +791,49 @@
    102 00000431 8B7604              <1>             mov     si, [bp + 4]
    103                              <1> 
    104                              <1>             ; Base(64bit)
-   105                              <1>             cdecl int_to_str, word [si + 6], .p2 + 0, 4, 16, 0b0100
-   105                              <2> 
-   105                              <2>  %rep %0 - 1
-   105                              <2>  push %-1:-1
-   105                              <2>  %rotate -1
-   105                              <2>  %endrep
-   105 00000434 6A04                <3>  push %-1:-1
-   105                              <3>  %rotate -1
-   105 00000436 6A10                <3>  push %-1:-1
-   105                              <3>  %rotate -1
-   105 00000438 6A04                <3>  push %-1:-1
-   105                              <3>  %rotate -1
-   105 0000043A 68[0B05]            <3>  push %-1:-1
-   105                              <3>  %rotate -1
-   105 0000043D FF7406              <3>  push %-1:-1
-   105                              <3>  %rotate -1
-   105                              <2>  %rotate -1
-   105                              <2> 
-   105 00000440 E8C9FD              <2>  call %1
-   105                              <2> 
-   105                              <2>  %if 1 < %0
-   105 00000443 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   105                              <2>  %endif
-   105                              <2> 
-   106                              <1>             cdecl int_to_str, word [si + 4], .p2 + 4, 4, 16, 0b0100
-   106                              <2> 
-   106                              <2>  %rep %0 - 1
-   106                              <2>  push %-1:-1
-   106                              <2>  %rotate -1
-   106                              <2>  %endrep
-   106 00000446 6A04                <3>  push %-1:-1
-   106                              <3>  %rotate -1
-   106 00000448 6A10                <3>  push %-1:-1
-   106                              <3>  %rotate -1
-   106 0000044A 6A04                <3>  push %-1:-1
-   106                              <3>  %rotate -1
-   106 0000044C 68[0F05]            <3>  push %-1:-1
-   106                              <3>  %rotate -1
-   106 0000044F FF7404              <3>  push %-1:-1
-   106                              <3>  %rotate -1
-   106                              <2>  %rotate -1
-   106                              <2> 
-   106 00000452 E8B7FD              <2>  call %1
-   106                              <2> 
-   106                              <2>  %if 1 < %0
-   106 00000455 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   106                              <2>  %endif
-   106                              <2> 
-   107                              <1>             cdecl int_to_str, word [si + 2], .p3 + 0, 4, 16, 0b0100
-   107                              <2> 
-   107                              <2>  %rep %0 - 1
-   107                              <2>  push %-1:-1
-   107                              <2>  %rotate -1
-   107                              <2>  %endrep
-   107 00000458 6A04                <3>  push %-1:-1
-   107                              <3>  %rotate -1
-   107 0000045A 6A10                <3>  push %-1:-1
-   107                              <3>  %rotate -1
-   107 0000045C 6A04                <3>  push %-1:-1
-   107                              <3>  %rotate -1
-   107 0000045E 68[1405]            <3>  push %-1:-1
-   107                              <3>  %rotate -1
-   107 00000461 FF7402              <3>  push %-1:-1
-   107                              <3>  %rotate -1
-   107                              <2>  %rotate -1
-   107                              <2> 
-   107 00000464 E8A5FD              <2>  call %1
-   107                              <2> 
-   107                              <2>  %if 1 < %0
-   107 00000467 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   107                              <2>  %endif
-   107                              <2> 
-   108                              <1>             cdecl int_to_str, word [si + 0], .p3 + 4, 4, 16, 0b0100
-   108                              <2> 
-   108                              <2>  %rep %0 - 1
-   108                              <2>  push %-1:-1
-   108                              <2>  %rotate -1
-   108                              <2>  %endrep
-   108 0000046A 6A04                <3>  push %-1:-1
-   108                              <3>  %rotate -1
-   108 0000046C 6A10                <3>  push %-1:-1
-   108                              <3>  %rotate -1
-   108 0000046E 6A04                <3>  push %-1:-1
-   108                              <3>  %rotate -1
-   108 00000470 68[1805]            <3>  push %-1:-1
-   108                              <3>  %rotate -1
-   108 00000473 FF34                <3>  push %-1:-1
-   108                              <3>  %rotate -1
-   108                              <2>  %rotate -1
-   108                              <2> 
-   108 00000475 E894FD              <2>  call %1
-   108                              <2> 
-   108                              <2>  %if 1 < %0
-   108 00000478 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   108                              <2>  %endif
-   108                              <2> 
+   105 00000434 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 6], .p2 + 0, 4, 16, 0b0100
+   105 0000043B [0B05]FF7406E8C9FD- <1>
+   105 00000443 83C40A              <1>
+   106 00000446 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 4], .p2 + 4, 4, 16, 0b0100
+   106 0000044D [0F05]FF7404E8B7FD- <1>
+   106 00000455 83C40A              <1>
+   107 00000458 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 2], .p3 + 0, 4, 16, 0b0100
+   107 0000045F [1405]FF7402E8A5FD- <1>
+   107 00000467 83C40A              <1>
+   108 0000046A 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 0], .p3 + 4, 4, 16, 0b0100
+   108 00000471 [1805]FF34E894FD83- <1>
+   108 00000479 C40A                <1>
    109                              <1> 
    110                              <1>             ; Length(64bit)
-   111                              <1>             cdecl int_to_str, word [si + 14], .p4 + 0, 4, 16, 0b0100
-   111                              <2> 
-   111                              <2>  %rep %0 - 1
-   111                              <2>  push %-1:-1
-   111                              <2>  %rotate -1
-   111                              <2>  %endrep
-   111 0000047B 6A04                <3>  push %-1:-1
-   111                              <3>  %rotate -1
-   111 0000047D 6A10                <3>  push %-1:-1
-   111                              <3>  %rotate -1
-   111 0000047F 6A04                <3>  push %-1:-1
-   111                              <3>  %rotate -1
-   111 00000481 68[1D05]            <3>  push %-1:-1
-   111                              <3>  %rotate -1
-   111 00000484 FF740E              <3>  push %-1:-1
-   111                              <3>  %rotate -1
-   111                              <2>  %rotate -1
-   111                              <2> 
-   111 00000487 E882FD              <2>  call %1
-   111                              <2> 
-   111                              <2>  %if 1 < %0
-   111 0000048A 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   111                              <2>  %endif
-   111                              <2> 
-   112                              <1>             cdecl int_to_str, word [si + 12], .p4 + 4, 4, 16, 0b0100
-   112                              <2> 
-   112                              <2>  %rep %0 - 1
-   112                              <2>  push %-1:-1
-   112                              <2>  %rotate -1
-   112                              <2>  %endrep
-   112 0000048D 6A04                <3>  push %-1:-1
-   112                              <3>  %rotate -1
-   112 0000048F 6A10                <3>  push %-1:-1
-   112                              <3>  %rotate -1
-   112 00000491 6A04                <3>  push %-1:-1
-   112                              <3>  %rotate -1
-   112 00000493 68[2105]            <3>  push %-1:-1
-   112                              <3>  %rotate -1
-   112 00000496 FF740C              <3>  push %-1:-1
-   112                              <3>  %rotate -1
-   112                              <2>  %rotate -1
-   112                              <2> 
-   112 00000499 E870FD              <2>  call %1
-   112                              <2> 
-   112                              <2>  %if 1 < %0
-   112 0000049C 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   112                              <2>  %endif
-   112                              <2> 
-   113                              <1>             cdecl int_to_str, word [si + 10], .p5 + 0, 4, 16, 0b0100
-   113                              <2> 
-   113                              <2>  %rep %0 - 1
-   113                              <2>  push %-1:-1
-   113                              <2>  %rotate -1
-   113                              <2>  %endrep
-   113 0000049F 6A04                <3>  push %-1:-1
-   113                              <3>  %rotate -1
-   113 000004A1 6A10                <3>  push %-1:-1
-   113                              <3>  %rotate -1
-   113 000004A3 6A04                <3>  push %-1:-1
-   113                              <3>  %rotate -1
-   113 000004A5 68[2605]            <3>  push %-1:-1
-   113                              <3>  %rotate -1
-   113 000004A8 FF740A              <3>  push %-1:-1
-   113                              <3>  %rotate -1
-   113                              <2>  %rotate -1
-   113                              <2> 
-   113 000004AB E85EFD              <2>  call %1
-   113                              <2> 
-   113                              <2>  %if 1 < %0
-   113 000004AE 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   113                              <2>  %endif
-   113                              <2> 
-   114                              <1>             cdecl int_to_str, word [si + 8 ], .p5 + 4, 4, 16, 0b0100
-   114                              <2> 
-   114                              <2>  %rep %0 - 1
-   114                              <2>  push %-1:-1
-   114                              <2>  %rotate -1
-   114                              <2>  %endrep
-   114 000004B1 6A04                <3>  push %-1:-1
-   114                              <3>  %rotate -1
-   114 000004B3 6A10                <3>  push %-1:-1
-   114                              <3>  %rotate -1
-   114 000004B5 6A04                <3>  push %-1:-1
-   114                              <3>  %rotate -1
-   114 000004B7 68[2A05]            <3>  push %-1:-1
-   114                              <3>  %rotate -1
-   114 000004BA FF7408              <3>  push %-1:-1
-   114                              <3>  %rotate -1
-   114                              <2>  %rotate -1
-   114                              <2> 
-   114 000004BD E84CFD              <2>  call %1
-   114                              <2> 
-   114                              <2>  %if 1 < %0
-   114 000004C0 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   114                              <2>  %endif
-   114                              <2> 
+   111 0000047B 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 14], .p4 + 0, 4, 16, 0b0100
+   111 00000482 [1D05]FF740EE882FD- <1>
+   111 0000048A 83C40A              <1>
+   112 0000048D 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 12], .p4 + 4, 4, 16, 0b0100
+   112 00000494 [2105]FF740CE870FD- <1>
+   112 0000049C 83C40A              <1>
+   113 0000049F 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 10], .p5 + 0, 4, 16, 0b0100
+   113 000004A6 [2605]FF740AE85EFD- <1>
+   113 000004AE 83C40A              <1>
+   114 000004B1 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 8 ], .p5 + 4, 4, 16, 0b0100
+   114 000004B8 [2A05]FF7408E84CFD- <1>
+   114 000004C0 83C40A              <1>
    115                              <1> 
    116                              <1>             ; Type(32bit)
-   117                              <1>             cdecl int_to_str, word [si + 18], .p6 + 0, 4, 16, 0b0100
-   117                              <2> 
-   117                              <2>  %rep %0 - 1
-   117                              <2>  push %-1:-1
-   117                              <2>  %rotate -1
-   117                              <2>  %endrep
-   117 000004C3 6A04                <3>  push %-1:-1
-   117                              <3>  %rotate -1
-   117 000004C5 6A10                <3>  push %-1:-1
-   117                              <3>  %rotate -1
-   117 000004C7 6A04                <3>  push %-1:-1
-   117                              <3>  %rotate -1
-   117 000004C9 68[2F05]            <3>  push %-1:-1
-   117                              <3>  %rotate -1
-   117 000004CC FF7412              <3>  push %-1:-1
-   117                              <3>  %rotate -1
-   117                              <2>  %rotate -1
-   117                              <2> 
-   117 000004CF E83AFD              <2>  call %1
-   117                              <2> 
-   117                              <2>  %if 1 < %0
-   117 000004D2 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   117                              <2>  %endif
-   117                              <2> 
-   118                              <1>             cdecl int_to_str, word [si + 16], .p6 + 4, 4, 16, 0b0100
-   118                              <2> 
-   118                              <2>  %rep %0 - 1
-   118                              <2>  push %-1:-1
-   118                              <2>  %rotate -1
-   118                              <2>  %endrep
-   118 000004D5 6A04                <3>  push %-1:-1
-   118                              <3>  %rotate -1
-   118 000004D7 6A10                <3>  push %-1:-1
-   118                              <3>  %rotate -1
-   118 000004D9 6A04                <3>  push %-1:-1
-   118                              <3>  %rotate -1
-   118 000004DB 68[3305]            <3>  push %-1:-1
-   118                              <3>  %rotate -1
-   118 000004DE FF7410              <3>  push %-1:-1
-   118                              <3>  %rotate -1
-   118                              <2>  %rotate -1
-   118                              <2> 
-   118 000004E1 E828FD              <2>  call %1
-   118                              <2> 
-   118                              <2>  %if 1 < %0
-   118 000004E4 83C40A              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   118                              <2>  %endif
-   118                              <2> 
+   117 000004C3 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 18], .p6 + 0, 4, 16, 0b0100
+   117 000004CA [2F05]FF7412E83AFD- <1>
+   117 000004D2 83C40A              <1>
+   118 000004D5 6A046A106A0468-     <1>             cdecl int_to_str, word [si + 16], .p6 + 4, 4, 16, 0b0100
+   118 000004DC [3305]FF7410E828FD- <1>
+   118 000004E4 83C40A              <1>
    119                              <1> 
-   120                              <1>             cdecl   puts, .s1                       ; // display record info
-   120                              <2> 
-   120                              <2>  %rep %0 - 1
-   120                              <2>  push %-1:-1
-   120                              <2>  %rotate -1
-   120                              <2>  %endrep
-   120 000004E7 68[0A05]            <3>  push %-1:-1
-   120                              <3>  %rotate -1
-   120                              <2>  %rotate -1
-   120                              <2> 
-   120 000004EA E8B9FB              <2>  call %1
-   120                              <2> 
-   120                              <2>  %if 1 < %0
-   120 000004ED 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   120                              <2>  %endif
-   120                              <2> 
+   120 000004E7 68[0A05]E8B9FB83C4- <1>             cdecl   puts, .s1                       ; // display record info
+   120 000004EF 02                  <1>
    121                              <1> 
    122 000004F0 8B5C10              <1>             mov     bx, [si + 16]                   ; // display type as string
    123 000004F3 83E307              <1>             and     bx, 0x07                        ; BX = Type(0~5)
    124 000004F6 D1E3                <1>             shl     bx, 1                           ; BX *= 2   // convert to element size
    125 000004F8 81C3[8D05]          <1>             add     bx, .t0                         ; BX += .t0 // add the start address of the table
-   126                              <1>             cdecl   puts, word [bx]
-   126                              <2> 
-   126                              <2>  %rep %0 - 1
-   126                              <2>  push %-1:-1
-   126                              <2>  %rotate -1
-   126                              <2>  %endrep
-   126 000004FC FF37                <3>  push %-1:-1
-   126                              <3>  %rotate -1
-   126                              <2>  %rotate -1
-   126                              <2> 
-   126 000004FE E8A5FB              <2>  call %1
-   126                              <2> 
-   126                              <2>  %if 1 < %0
-   126 00000501 83C402              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   126                              <2>  %endif
-   126                              <2> 
+   126 000004FC FF37E8A5FB83C402    <1>             cdecl   puts, word [bx]
    127                              <1> 
    128                              <1>             ; return registers
    129 00000504 5E                  <1>             pop     si
@@ -1444,52 +1058,16 @@
     16                              <1> 
     17                              <1>             ;LBA -> CHS conversion
     18 0000063D 8B4606              <1>             mov     ax, [bp + 6]
-    19                              <1>             cdecl   lba_chs, si, .chs, ax
-    19                              <2> 
-    19                              <2>  %rep %0 - 1
-    19                              <2>  push %-1:-1
-    19                              <2>  %rotate -1
-    19                              <2>  %endrep
-    19 00000640 50                  <3>  push %-1:-1
-    19                              <3>  %rotate -1
-    19 00000641 68[6406]            <3>  push %-1:-1
-    19                              <3>  %rotate -1
-    19 00000644 56                  <3>  push %-1:-1
-    19                              <3>  %rotate -1
-    19                              <2>  %rotate -1
-    19                              <2> 
-    19 00000645 E8B3FF              <2>  call %1
-    19                              <2> 
-    19                              <2>  %if 1 < %0
-    19 00000648 83C406              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    19                              <2>  %endif
-    19                              <2> 
+    19 00000640 5068[6406]56E8B3FF- <1>             cdecl   lba_chs, si, .chs, ax
+    19 00000648 83C406              <1>
     20                              <1> 
     21                              <1>             ;copy drive no.
     22 0000064B 8A04                <1>             mov     al, [si + drive.no]
     23 0000064D A2[6406]            <1>             mov     [.chs + drive.no], al
     24                              <1> 
     25                              <1>             ;read sector
-    26                              <1>             cdecl   read_chs, .chs, word [bp + 8], word [bp + 10]
-    26                              <2> 
-    26                              <2>  %rep %0 - 1
-    26                              <2>  push %-1:-1
-    26                              <2>  %rotate -1
-    26                              <2>  %endrep
-    26 00000650 FF760A              <3>  push %-1:-1
-    26                              <3>  %rotate -1
-    26 00000653 FF7608              <3>  push %-1:-1
-    26                              <3>  %rotate -1
-    26 00000656 68[6406]            <3>  push %-1:-1
-    26                              <3>  %rotate -1
-    26                              <2>  %rotate -1
-    26                              <2> 
-    26 00000659 E8A8FA              <2>  call %1
-    26                              <2> 
-    26                              <2>  %if 1 < %0
-    26 0000065C 83C406              <2>  add sp, (__BITS__ >> 3) * (%0 - 1)
-    26                              <2>  %endif
-    26                              <2> 
+    26 00000650 FF760AFF760868-     <1>             cdecl   read_chs, .chs, word [bp + 8], word [bp + 10]
+    26 00000657 [6406]E8A8FA83C406  <1>
     27                              <1>                                                             ; AX = read_chs(.chs, sect num, ofs)
     28                              <1> 
     29                              <1>             ;return register
@@ -1603,179 +1181,38 @@
    131                                  stage_2:
    132                                  
    133                                          ; put char
-   134                                          cdecl   puts, .s0
-   134                              <1> 
-   134                              <1>  %rep %0 - 1
-   134                              <1>  push %-1:-1
-   134                              <1>  %rotate -1
-   134                              <1>  %endrep
-   134 000006AC 68[2607]            <2>  push %-1:-1
-   134                              <2>  %rotate -1
-   134                              <1>  %rotate -1
-   134                              <1> 
-   134 000006AF E8F4F9              <1>  call %1
-   134                              <1> 
-   134                              <1>  %if 1 < %0
-   134 000006B2 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   134                              <1>  %endif
-   134                              <1> 
+   134 000006AC 68[2607]E8F4F983C4-             cdecl   puts, .s0
+   134 000006B4 02                 
    135                                  
    136                                          ; get drive info
-   137                                          cdecl   get_drive_params, BOOT                          ; get_drive_params(DX, BOOT.CYLN);
-   137                              <1> 
-   137                              <1>  %rep %0 - 1
-   137                              <1>  push %-1:-1
-   137                              <1>  %rotate -1
-   137                              <1>  %endrep
-   137 000006B5 68[9E00]            <2>  push %-1:-1
-   137                              <2>  %rotate -1
-   137                              <1>  %rotate -1
-   137                              <1> 
-   137 000006B8 E8D1FB              <1>  call %1
-   137                              <1> 
-   137                              <1>  %if 1 < %0
-   137 000006BB 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   137                              <1>  %endif
-   137                              <1> 
+   137 000006B5 68[9E00]E8D1FB83C4-             cdecl   get_drive_params, BOOT                          ; get_drive_params(DX, BOOT.CYLN);
+   137 000006BD 02                 
    138 000006BE 83F800                          cmp     ax, 0                                           ; if (0 == AX){
    139 000006C1 750C                    .10Q:   jne     .10E                                            ;        puts(.e0);
-   140                                  .10T:   cdecl   puts, .e0                                       ;        reboot();
-   140                              <1> .10T: 
-   140                              <1> 
-   140                              <1>  %rep %0 - 1
-   140                              <1>  push %-1:-1
-   140                              <1>  %rotate -1
-   140                              <1>  %endrep
-   140 000006C3 68[5D07]            <2>  push %-1:-1
-   140                              <2>  %rotate -1
-   140                              <1>  %rotate -1
-   140                              <1> 
-   140 000006C6 E8DDF9              <1>  call %1
-   140                              <1> 
-   140                              <1>  %if 1 < %0
-   140 000006C9 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   140                              <1>  %endif
-   140                              <1> 
+   140 000006C3 68[5D07]E8DDF983C4-     .10T:   cdecl   puts, .e0                                       ;        reboot();
+   140 000006CB 02                 
    141 000006CC E8F6F9                          call    reboot                                          ;  }
    142                                  .10E:
    143                                  
    144                                          ; display drive info
    145 000006CF A1[9E00]                        mov     ax, [BOOT + drive.no]                           ; AX = boot drive
-   146                                          cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
-   146                              <1> 
-   146                              <1>  %rep %0 - 1
-   146                              <1>  push %-1:-1
-   146                              <1>  %rotate -1
-   146                              <1>  %endrep
-   146 000006D2 6A04                <2>  push %-1:-1
-   146                              <2>  %rotate -1
-   146 000006D4 6A10                <2>  push %-1:-1
-   146                              <2>  %rotate -1
-   146 000006D6 6A02                <2>  push %-1:-1
-   146                              <2>  %rotate -1
-   146 000006D8 68[3E07]            <2>  push %-1:-1
-   146                              <2>  %rotate -1
-   146 000006DB 50                  <2>  push %-1:-1
-   146                              <2>  %rotate -1
-   146                              <1>  %rotate -1
-   146                              <1> 
-   146 000006DC E82DFB              <1>  call %1
-   146                              <1> 
-   146                              <1>  %if 1 < %0
-   146 000006DF 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   146                              <1>  %endif
-   146                              <1> 
+   146 000006D2 6A046A106A0268-                 cdecl   int_to_str, ax, .p1, 2, 16, 0b0100
+   146 000006D9 [3E07]50E82DFB83C4-
+   146 000006E1 0A                 
    147 000006E2 A1[A000]                        mov     ax, [BOOT + drive.cyln]
-   148                                          cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
-   148                              <1> 
-   148                              <1>  %rep %0 - 1
-   148                              <1>  push %-1:-1
-   148                              <1>  %rotate -1
-   148                              <1>  %endrep
-   148 000006E5 6A04                <2>  push %-1:-1
-   148                              <2>  %rotate -1
-   148 000006E7 6A10                <2>  push %-1:-1
-   148                              <2>  %rotate -1
-   148 000006E9 6A04                <2>  push %-1:-1
-   148                              <2>  %rotate -1
-   148 000006EB 68[4607]            <2>  push %-1:-1
-   148                              <2>  %rotate -1
-   148 000006EE 50                  <2>  push %-1:-1
-   148                              <2>  %rotate -1
-   148                              <1>  %rotate -1
-   148                              <1> 
-   148 000006EF E81AFB              <1>  call %1
-   148                              <1> 
-   148                              <1>  %if 1 < %0
-   148 000006F2 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   148                              <1>  %endif
-   148                              <1> 
+   148 000006E5 6A046A106A0468-                 cdecl   int_to_str, ax, .p2, 4, 16, 0b0100
+   148 000006EC [4607]50E81AFB83C4-
+   148 000006F4 0A                 
    149 000006F5 A1[A200]                        mov     ax, [BOOT + drive.head]                         ; AX = num of heads
-   150                                          cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
-   150                              <1> 
-   150                              <1>  %rep %0 - 1
-   150                              <1>  push %-1:-1
-   150                              <1>  %rotate -1
-   150                              <1>  %endrep
-   150 000006F8 6A04                <2>  push %-1:-1
-   150                              <2>  %rotate -1
-   150 000006FA 6A10                <2>  push %-1:-1
-   150                              <2>  %rotate -1
-   150 000006FC 6A02                <2>  push %-1:-1
-   150                              <2>  %rotate -1
-   150 000006FE 68[5007]            <2>  push %-1:-1
-   150                              <2>  %rotate -1
-   150 00000701 50                  <2>  push %-1:-1
-   150                              <2>  %rotate -1
-   150                              <1>  %rotate -1
-   150                              <1> 
-   150 00000702 E807FB              <1>  call %1
-   150                              <1> 
-   150                              <1>  %if 1 < %0
-   150 00000705 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   150                              <1>  %endif
-   150                              <1> 
+   150 000006F8 6A046A106A0268-                 cdecl   int_to_str, ax, .p3, 2, 16, 0b0100
+   150 000006FF [5007]50E807FB83C4-
+   150 00000707 0A                 
    151 00000708 A1[A400]                        mov     ax, [BOOT + drive.sect]                         ; AX = num of sect per track
-   152                                          cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
-   152                              <1> 
-   152                              <1>  %rep %0 - 1
-   152                              <1>  push %-1:-1
-   152                              <1>  %rotate -1
-   152                              <1>  %endrep
-   152 0000070B 6A04                <2>  push %-1:-1
-   152                              <2>  %rotate -1
-   152 0000070D 6A10                <2>  push %-1:-1
-   152                              <2>  %rotate -1
-   152 0000070F 6A02                <2>  push %-1:-1
-   152                              <2>  %rotate -1
-   152 00000711 68[5807]            <2>  push %-1:-1
-   152                              <2>  %rotate -1
-   152 00000714 50                  <2>  push %-1:-1
-   152                              <2>  %rotate -1
-   152                              <1>  %rotate -1
-   152                              <1> 
-   152 00000715 E8F4FA              <1>  call %1
-   152                              <1> 
-   152                              <1>  %if 1 < %0
-   152 00000718 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   152                              <1>  %endif
-   152                              <1> 
-   153                                          cdecl   puts, .s1
-   153                              <1> 
-   153                              <1>  %rep %0 - 1
-   153                              <1>  push %-1:-1
-   153                              <1>  %rotate -1
-   153                              <1>  %endrep
-   153 0000071B 68[3507]            <2>  push %-1:-1
-   153                              <2>  %rotate -1
-   153                              <1>  %rotate -1
-   153                              <1> 
-   153 0000071E E885F9              <1>  call %1
-   153                              <1> 
-   153                              <1>  %if 1 < %0
-   153 00000721 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   153                              <1>  %endif
-   153                              <1> 
+   152 0000070B 6A046A106A0268-                 cdecl   int_to_str, ax, .p4, 2, 16, 0b0100
+   152 00000712 [5807]50E8F4FA83C4-
+   152 0000071A 0A                 
+   153 0000071B 68[3507]E885F983C4-             cdecl   puts, .s1
+   153 00000723 02                 
    154                                  
    155                                  
    156                                          ; end of process
@@ -1801,194 +1238,41 @@
    172                                  stage_3:
    173                                  
    174                                          ; put char
-   175                                          cdecl   puts, .s0
-   175                              <1> 
-   175                              <1>  %rep %0 - 1
-   175                              <1>  push %-1:-1
-   175                              <1>  %rotate -1
-   175                              <1>  %endrep
-   175 00000778 68[F507]            <2>  push %-1:-1
-   175                              <2>  %rotate -1
-   175                              <1>  %rotate -1
-   175                              <1> 
-   175 0000077B E828F9              <1>  call %1
-   175                              <1> 
-   175                              <1>  %if 1 < %0
-   175 0000077E 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   175                              <1>  %endif
-   175                              <1> 
+   175 00000778 68[F507]E828F983C4-             cdecl   puts, .s0
+   175 00000780 02                 
    176                                  
    177                                          ; The font used in protect mode is the one built into BIOS
    178                                  
-   179                                          cdecl   get_font_adr, FONT
-   179                              <1> 
-   179                              <1>  %rep %0 - 1
-   179                              <1>  push %-1:-1
-   179                              <1>  %rotate -1
-   179                              <1>  %endrep
-   179 00000781 68[0002]            <2>  push %-1:-1
-   179                              <2>  %rotate -1
-   179                              <1>  %rotate -1
-   179                              <1> 
-   179 00000784 E846FB              <1>  call %1
-   179                              <1> 
-   179                              <1>  %if 1 < %0
-   179 00000787 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   179                              <1>  %endif
-   179                              <1> 
+   179 00000781 68[0002]E846FB83C4-             cdecl   get_font_adr, FONT
+   179 00000789 02                 
    180                                  
    181                                          ; display font address
-   182                                          cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
-   182                              <1> 
-   182                              <1>  %rep %0 - 1
-   182                              <1>  push %-1:-1
-   182                              <1>  %rotate -1
-   182                              <1>  %endrep
-   182 0000078A 6A04                <2>  push %-1:-1
-   182                              <2>  %rotate -1
-   182 0000078C 6A10                <2>  push %-1:-1
-   182                              <2>  %rotate -1
-   182 0000078E 6A04                <2>  push %-1:-1
-   182                              <2>  %rotate -1
-   182 00000790 68[1208]            <2>  push %-1:-1
-   182                              <2>  %rotate -1
-   182 00000793 FF36[0002]          <2>  push %-1:-1
-   182                              <2>  %rotate -1
-   182                              <1>  %rotate -1
-   182                              <1> 
-   182 00000797 E872FA              <1>  call %1
-   182                              <1> 
-   182                              <1>  %if 1 < %0
-   182 0000079A 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   182                              <1>  %endif
-   182                              <1> 
-   183                                          cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
-   183                              <1> 
-   183                              <1>  %rep %0 - 1
-   183                              <1>  push %-1:-1
-   183                              <1>  %rotate -1
-   183                              <1>  %endrep
-   183 0000079D 6A04                <2>  push %-1:-1
-   183                              <2>  %rotate -1
-   183 0000079F 6A10                <2>  push %-1:-1
-   183                              <2>  %rotate -1
-   183 000007A1 6A04                <2>  push %-1:-1
-   183                              <2>  %rotate -1
-   183 000007A3 68[1708]            <2>  push %-1:-1
-   183                              <2>  %rotate -1
-   183 000007A6 FF36[0202]          <2>  push %-1:-1
-   183                              <2>  %rotate -1
-   183                              <1>  %rotate -1
-   183                              <1> 
-   183 000007AA E85FFA              <1>  call %1
-   183                              <1> 
-   183                              <1>  %if 1 < %0
-   183 000007AD 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   183                              <1>  %endif
-   183                              <1> 
-   184                                          cdecl   puts, .s1
-   184                              <1> 
-   184                              <1>  %rep %0 - 1
-   184                              <1>  push %-1:-1
-   184                              <1>  %rotate -1
-   184                              <1>  %endrep
-   184 000007B0 68[0408]            <2>  push %-1:-1
-   184                              <2>  %rotate -1
-   184                              <1>  %rotate -1
-   184                              <1> 
-   184 000007B3 E8F0F8              <1>  call %1
-   184                              <1> 
-   184                              <1>  %if 1 < %0
-   184 000007B6 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   184                              <1>  %endif
-   184                              <1> 
+   182 0000078A 6A046A106A0468-                 cdecl   int_to_str, word [FONT.seg], .p1, 4, 16, 0b0100
+   182 00000791 [1208]FF36[0002]E8-
+   182 00000798 72FA83C40A         
+   183 0000079D 6A046A106A0468-                 cdecl   int_to_str, word [FONT.off], .p2, 4, 16, 0b0100
+   183 000007A4 [1708]FF36[0202]E8-
+   183 000007AB 5FFA83C40A         
+   184 000007B0 68[0408]E8F0F883C4-             cdecl   puts, .s1
+   184 000007B8 02                 
    185                                  
    186                                          ; get memory info and display it
-   187                                          cdecl   get_mem_info                            ;get_mem_info()
-   187                              <1> 
-   187                              <1>  %rep %0 - 1
-   187                              <1>  push %-1:-1
-   187                              <1>  %rotate -1
-   187                              <1>  %endrep
-   187                              <1>  %rotate -1
-   187                              <1> 
-   187 000007B9 E831FB              <1>  call %1
-   187                              <1> 
-   187                              <1>  %if 1 < %0
-   187                              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   187                              <1>  %endif
-   187                              <1> 
+   187 000007B9 E831FB                          cdecl   get_mem_info                            ;get_mem_info()
    188                                  
    189 000007BC 66A1[0402]                      mov     eax, [ACPI_DATA.adr]
    190 000007C0 6683F800                        cmp     eax, 0
    191 000007C4 742D                            je      .10E
    192                                  
-   193                                          cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ; lower address
-   193                              <1> 
-   193                              <1>  %rep %0 - 1
-   193                              <1>  push %-1:-1
-   193                              <1>  %rotate -1
-   193                              <1>  %endrep
-   193 000007C6 6A04                <2>  push %-1:-1
-   193                              <2>  %rotate -1
-   193 000007C8 6A10                <2>  push %-1:-1
-   193                              <2>  %rotate -1
-   193 000007CA 6A04                <2>  push %-1:-1
-   193                              <2>  %rotate -1
-   193 000007CC 68[3108]            <2>  push %-1:-1
-   193                              <2>  %rotate -1
-   193 000007CF 50                  <2>  push %-1:-1
-   193                              <2>  %rotate -1
-   193                              <1>  %rotate -1
-   193                              <1> 
-   193 000007D0 E839FA              <1>  call %1
-   193                              <1> 
-   193                              <1>  %if 1 < %0
-   193 000007D3 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   193                              <1>  %endif
-   193                              <1> 
+   193 000007C6 6A046A106A0468-                 cdecl   int_to_str, ax, .p4, 4, 16, 0b0100      ; lower address
+   193 000007CD [3108]50E839FA83C4-
+   193 000007D5 0A                 
    194 000007D6 66C1E810                        shr     eax, 16                                 ; EAX >>= 16
-   195                                          cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ; upper address
-   195                              <1> 
-   195                              <1>  %rep %0 - 1
-   195                              <1>  push %-1:-1
-   195                              <1>  %rotate -1
-   195                              <1>  %endrep
-   195 000007DA 6A04                <2>  push %-1:-1
-   195                              <2>  %rotate -1
-   195 000007DC 6A10                <2>  push %-1:-1
-   195                              <2>  %rotate -1
-   195 000007DE 6A04                <2>  push %-1:-1
-   195                              <2>  %rotate -1
-   195 000007E0 68[2D08]            <2>  push %-1:-1
-   195                              <2>  %rotate -1
-   195 000007E3 50                  <2>  push %-1:-1
-   195                              <2>  %rotate -1
-   195                              <1>  %rotate -1
-   195                              <1> 
-   195 000007E4 E825FA              <1>  call %1
-   195                              <1> 
-   195                              <1>  %if 1 < %0
-   195 000007E7 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   195                              <1>  %endif
-   195                              <1> 
+   195 000007DA 6A046A106A0468-                 cdecl   int_to_str, ax, .p3, 4, 16, 0b0100      ; upper address
+   195 000007E1 [2D08]50E825FA83C4-
+   195 000007E9 0A                 
    196                                  
-   197                                          cdecl   puts, .s2
-   197                              <1> 
-   197                              <1>  %rep %0 - 1
-   197                              <1>  push %-1:-1
-   197                              <1>  %rotate -1
-   197                              <1>  %endrep
-   197 000007EA 68[2108]            <2>  push %-1:-1
-   197                              <2>  %rotate -1
-   197                              <1>  %rotate -1
-   197                              <1> 
-   197 000007ED E8B6F8              <1>  call %1
-   197                              <1> 
-   197                              <1>  %if 1 < %0
-   197 000007F0 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   197                              <1>  %endif
-   197                              <1> 
+   197 000007EA 68[2108]E8B6F883C4-             cdecl   puts, .s2
+   197 000007F2 02                 
    198                                  .10E:
    199                                  
    200                                          ; end of process
@@ -2014,167 +1298,36 @@
    217                                  stage_4:
    218                                  
    219                                          ; put char
-   220                                          cdecl   puts, .s0
-   220                              <1> 
-   220                              <1>  %rep %0 - 1
-   220                              <1>  push %-1:-1
-   220                              <1>  %rotate -1
-   220                              <1>  %endrep
-   220 00000838 68[0C09]            <2>  push %-1:-1
-   220                              <2>  %rotate -1
-   220                              <1>  %rotate -1
-   220                              <1> 
-   220 0000083B E868F8              <1>  call %1
-   220                              <1> 
-   220                              <1>  %if 1 < %0
-   220 0000083E 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   220                              <1>  %endif
-   220                              <1> 
+   220 00000838 68[0C09]E868F883C4-             cdecl   puts, .s0
+   220 00000840 02                 
    221                                  
    222                                          ; enable A20 gate
    223                                  
    224 00000841 FA                              cli                                             ; disable interrupt
    225                                  
-   226                                          cdecl   KBC_Cmd_Write, 0xAD                     ; disable Keyboard
-   226                              <1> 
-   226                              <1>  %rep %0 - 1
-   226                              <1>  push %-1:-1
-   226                              <1>  %rotate -1
-   226                              <1>  %endrep
-   226 00000842 68AD00              <2>  push %-1:-1
-   226                              <2>  %rotate -1
-   226                              <1>  %rotate -1
-   226                              <1> 
-   226 00000845 E895FD              <1>  call %1
-   226                              <1> 
-   226                              <1>  %if 1 < %0
-   226 00000848 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   226                              <1>  %endif
-   226                              <1> 
+   226 00000842 68AD00E895FD83C402              cdecl   KBC_Cmd_Write, 0xAD                     ; disable Keyboard
    227                                  
-   228                                          cdecl   KBC_Cmd_Write, 0xD0                     ; cmd that read output port
-   228                              <1> 
-   228                              <1>  %rep %0 - 1
-   228                              <1>  push %-1:-1
-   228                              <1>  %rotate -1
-   228                              <1>  %endrep
-   228 0000084B 68D000              <2>  push %-1:-1
-   228                              <2>  %rotate -1
-   228                              <1>  %rotate -1
-   228                              <1> 
-   228 0000084E E88CFD              <1>  call %1
-   228                              <1> 
-   228                              <1>  %if 1 < %0
-   228 00000851 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   228                              <1>  %endif
-   228                              <1> 
-   229                                          cdecl   KBC_Data_Read, .key                     ; output port data
-   229                              <1> 
-   229                              <1>  %rep %0 - 1
-   229                              <1>  push %-1:-1
-   229                              <1>  %rotate -1
-   229                              <1>  %endrep
-   229 00000854 68[5309]            <2>  push %-1:-1
-   229                              <2>  %rotate -1
-   229                              <1>  %rotate -1
-   229                              <1> 
-   229 00000857 E85FFD              <1>  call %1
-   229                              <1> 
-   229                              <1>  %if 1 < %0
-   229 0000085A 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   229                              <1>  %endif
-   229                              <1> 
+   228 0000084B 68D000E88CFD83C402              cdecl   KBC_Cmd_Write, 0xD0                     ; cmd that read output port
+   229 00000854 68[5309]E85FFD83C4-             cdecl   KBC_Data_Read, .key                     ; output port data
+   229 0000085C 02                 
    230                                  
    231 0000085D 8A1E[5309]                      mov     bl, [.key]
    232 00000861 80CB02                          or      bl, 0x02                                ; Enable A20 gate
    233                                  
-   234                                          cdecl   KBC_Cmd_Write, 0xD1                     ; cmd that write output port
-   234                              <1> 
-   234                              <1>  %rep %0 - 1
-   234                              <1>  push %-1:-1
-   234                              <1>  %rotate -1
-   234                              <1>  %endrep
-   234 00000864 68D100              <2>  push %-1:-1
-   234                              <2>  %rotate -1
-   234                              <1>  %rotate -1
-   234                              <1> 
-   234 00000867 E873FD              <1>  call %1
-   234                              <1> 
-   234                              <1>  %if 1 < %0
-   234 0000086A 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   234                              <1>  %endif
-   234                              <1> 
-   235                                          cdecl   KBC_Data_Write, bx                      ; output port data
-   235                              <1> 
-   235                              <1>  %rep %0 - 1
-   235                              <1>  push %-1:-1
-   235                              <1>  %rotate -1
-   235                              <1>  %endrep
-   235 0000086D 53                  <2>  push %-1:-1
-   235                              <2>  %rotate -1
-   235                              <1>  %rotate -1
-   235                              <1> 
-   235 0000086E E82AFD              <1>  call %1
-   235                              <1> 
-   235                              <1>  %if 1 < %0
-   235 00000871 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   235                              <1>  %endif
-   235                              <1> 
+   234 00000864 68D100E873FD83C402              cdecl   KBC_Cmd_Write, 0xD1                     ; cmd that write output port
+   235 0000086D 53E82AFD83C402                  cdecl   KBC_Data_Write, bx                      ; output port data
    236                                  
-   237                                          cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
-   237                              <1> 
-   237                              <1>  %rep %0 - 1
-   237                              <1>  push %-1:-1
-   237                              <1>  %rotate -1
-   237                              <1>  %endrep
-   237 00000874 68AE00              <2>  push %-1:-1
-   237                              <2>  %rotate -1
-   237                              <1>  %rotate -1
-   237                              <1> 
-   237 00000877 E863FD              <1>  call %1
-   237                              <1> 
-   237                              <1>  %if 1 < %0
-   237 0000087A 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   237                              <1>  %endif
-   237                              <1> 
+   237 00000874 68AE00E863FD83C402              cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
    238                                  
    239 0000087D FB                              sti
    240                                  
    241                                          ; put char
-   242                                          cdecl   puts, .s1
-   242                              <1> 
-   242                              <1>  %rep %0 - 1
-   242                              <1>  push %-1:-1
-   242                              <1>  %rotate -1
-   242                              <1>  %endrep
-   242 0000087E 68[1B09]            <2>  push %-1:-1
-   242                              <2>  %rotate -1
-   242                              <1>  %rotate -1
-   242                              <1> 
-   242 00000881 E822F8              <1>  call %1
-   242                              <1> 
-   242                              <1>  %if 1 < %0
-   242 00000884 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   242                              <1>  %endif
-   242                              <1> 
+   242 0000087E 68[1B09]E822F883C4-             cdecl   puts, .s1
+   242 00000886 02                 
    243                                  
    244                                          ; Test Keyboard LED
-   245                                          cdecl   puts, .s2
-   245                              <1> 
-   245                              <1>  %rep %0 - 1
-   245                              <1>  push %-1:-1
-   245                              <1>  %rotate -1
-   245                              <1>  %endrep
-   245 00000887 68[3009]            <2>  push %-1:-1
-   245                              <2>  %rotate -1
-   245                              <1>  %rotate -1
-   245                              <1> 
-   245 0000088A E819F8              <1>  call %1
-   245                              <1> 
-   245                              <1>  %if 1 < %0
-   245 0000088D 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   245                              <1>  %endif
-   245                              <1> 
+   245 00000887 68[3009]E819F883C4-             cdecl   puts, .s2
+   245 0000088F 02                 
    246                                  
    247 00000890 BB0000                          mov     bx, 0                                   ; BX = initial value of LED
    248                                  
@@ -2198,138 +1351,29 @@
    266                                          ; Send LED command
    267                                  
    268 000008AD FA                              cli                                             ; disable interrupt
-   269                                          cdecl   KBC_Cmd_Write, 0xAD                     ; disable keyboard
-   269                              <1> 
-   269                              <1>  %rep %0 - 1
-   269                              <1>  push %-1:-1
-   269                              <1>  %rotate -1
-   269                              <1>  %endrep
-   269 000008AE 68AD00              <2>  push %-1:-1
-   269                              <2>  %rotate -1
-   269                              <1>  %rotate -1
-   269                              <1> 
-   269 000008B1 E829FD              <1>  call %1
-   269                              <1> 
-   269                              <1>  %if 1 < %0
-   269 000008B4 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   269                              <1>  %endif
-   269                              <1> 
+   269 000008AE 68AD00E829FD83C402              cdecl   KBC_Cmd_Write, 0xAD                     ; disable keyboard
    270                                  
-   271                                          cdecl   KBC_Data_Write, 0xED                    ; AX = KBC_Data_Write(0xED) // LED command
-   271                              <1> 
-   271                              <1>  %rep %0 - 1
-   271                              <1>  push %-1:-1
-   271                              <1>  %rotate -1
-   271                              <1>  %endrep
-   271 000008B7 68ED00              <2>  push %-1:-1
-   271                              <2>  %rotate -1
-   271                              <1>  %rotate -1
-   271                              <1> 
-   271 000008BA E8DEFC              <1>  call %1
-   271                              <1> 
-   271                              <1>  %if 1 < %0
-   271 000008BD 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   271                              <1>  %endif
-   271                              <1> 
-   272                                          cdecl   KBC_Data_Read, .key                     ; AX = KBC_Data_Read(&key) // ACK(Acknowledge)
-   272                              <1> 
-   272                              <1>  %rep %0 - 1
-   272                              <1>  push %-1:-1
-   272                              <1>  %rotate -1
-   272                              <1>  %endrep
-   272 000008C0 68[5309]            <2>  push %-1:-1
-   272                              <2>  %rotate -1
-   272                              <1>  %rotate -1
-   272                              <1> 
-   272 000008C3 E8F3FC              <1>  call %1
-   272                              <1> 
-   272                              <1>  %if 1 < %0
-   272 000008C6 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   272                              <1>  %endif
-   272                              <1> 
+   271 000008B7 68ED00E8DEFC83C402              cdecl   KBC_Data_Write, 0xED                    ; AX = KBC_Data_Write(0xED) // LED command
+   272 000008C0 68[5309]E8F3FC83C4-             cdecl   KBC_Data_Read, .key                     ; AX = KBC_Data_Read(&key) // ACK(Acknowledge)
+   272 000008C8 02                 
    273                                  
    274 000008C9 803E[5309]FA                    cmp     [.key], byte 0xFA                       ; whether it's equipped with LED
    275 000008CE 7509                            jne     .11F
    276                                  
-   277                                          cdecl   KBC_Data_Write, bx                      ; AX = KBC_Data_Write(BX) // LED data
-   277                              <1> 
-   277                              <1>  %rep %0 - 1
-   277                              <1>  push %-1:-1
-   277                              <1>  %rotate -1
-   277                              <1>  %endrep
-   277 000008D0 53                  <2>  push %-1:-1
-   277                              <2>  %rotate -1
-   277                              <1>  %rotate -1
-   277                              <1> 
-   277 000008D1 E8C7FC              <1>  call %1
-   277                              <1> 
-   277                              <1>  %if 1 < %0
-   277 000008D4 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   277                              <1>  %endif
-   277                              <1> 
+   277 000008D0 53E8C7FC83C402                  cdecl   KBC_Data_Write, bx                      ; AX = KBC_Data_Write(BX) // LED data
    278                                  
    279 000008D7 EB1C                            jmp     .11E
    280                                  
    281                                  .11F:
-   282                                          cdecl   int_to_str, word [.key], .e1, 2, 16, 0b0100
-   282                              <1> 
-   282                              <1>  %rep %0 - 1
-   282                              <1>  push %-1:-1
-   282                              <1>  %rotate -1
-   282                              <1>  %endrep
-   282 000008D9 6A04                <2>  push %-1:-1
-   282                              <2>  %rotate -1
-   282 000008DB 6A10                <2>  push %-1:-1
-   282                              <2>  %rotate -1
-   282 000008DD 6A02                <2>  push %-1:-1
-   282                              <2>  %rotate -1
-   282 000008DF 68[4F09]            <2>  push %-1:-1
-   282                              <2>  %rotate -1
-   282 000008E2 FF36[5309]          <2>  push %-1:-1
-   282                              <2>  %rotate -1
-   282                              <1>  %rotate -1
-   282                              <1> 
-   282 000008E6 E823F9              <1>  call %1
-   282                              <1> 
-   282                              <1>  %if 1 < %0
-   282 000008E9 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   282                              <1>  %endif
-   282                              <1> 
-   283                                          cdecl   puts, .e0                               ; put received code
-   283                              <1> 
-   283                              <1>  %rep %0 - 1
-   283                              <1>  push %-1:-1
-   283                              <1>  %rotate -1
-   283                              <1>  %endrep
-   283 000008EC 68[4E09]            <2>  push %-1:-1
-   283                              <2>  %rotate -1
-   283                              <1>  %rotate -1
-   283                              <1> 
-   283 000008EF E8B4F7              <1>  call %1
-   283                              <1> 
-   283                              <1>  %if 1 < %0
-   283 000008F2 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   283                              <1>  %endif
-   283                              <1> 
+   282 000008D9 6A046A106A0268-                 cdecl   int_to_str, word [.key], .e1, 2, 16, 0b0100
+   282 000008E0 [4F09]FF36[5309]E8-
+   282 000008E7 23F983C40A         
+   283 000008EC 68[4E09]E8B4F783C4-             cdecl   puts, .e0                               ; put received code
+   283 000008F4 02                 
    284                                  
    285                                  .11E:
    286                                  
-   287                                          cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
-   287                              <1> 
-   287                              <1>  %rep %0 - 1
-   287                              <1>  push %-1:-1
-   287                              <1>  %rotate -1
-   287                              <1>  %endrep
-   287 000008F5 68AE00              <2>  push %-1:-1
-   287                              <2>  %rotate -1
-   287                              <1>  %rotate -1
-   287                              <1> 
-   287 000008F8 E8E2FC              <1>  call %1
-   287                              <1> 
-   287                              <1>  %if 1 < %0
-   287 000008FB 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   287                              <1>  %endif
-   287                              <1> 
+   287 000008F5 68AE00E8E2FC83C402              cdecl   KBC_Cmd_Write, 0xAE                     ; Enable Keyboard
    288                                  
    289 000008FE FB                              sti                                             ; Enable interrupt
    290                                  
@@ -2338,22 +1382,8 @@
    293                                  .10E:
    294                                  
    295                                          ; put char
-   296                                          cdecl   puts, .s3
-   296                              <1> 
-   296                              <1>  %rep %0 - 1
-   296                              <1>  push %-1:-1
-   296                              <1>  %rotate -1
-   296                              <1>  %endrep
-   296 00000901 68[4509]            <2>  push %-1:-1
-   296                              <2>  %rotate -1
-   296                              <1>  %rotate -1
-   296                              <1> 
-   296 00000904 E89FF7              <1>  call %1
-   296                              <1> 
-   296                              <1>  %if 1 < %0
-   296 00000907 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   296                              <1>  %endif
-   296                              <1> 
+   296 00000901 68[4509]E89FF783C4-             cdecl   puts, .s3
+   296 00000909 02                 
    297                                  
    298                                          ; End of Process
    299 0000090A EB49                            jmp     stage_5
@@ -2376,66 +1406,17 @@
    311                                  stage_5:
    312                                  
    313                                          ; put char
-   314                                          cdecl   puts, .s0
-   314                              <1> 
-   314                              <1>  %rep %0 - 1
-   314                              <1>  push %-1:-1
-   314                              <1>  %rotate -1
-   314                              <1>  %endrep
-   314 00000955 68[8109]            <2>  push %-1:-1
-   314                              <2>  %rotate -1
-   314                              <1>  %rotate -1
-   314                              <1> 
-   314 00000958 E84BF7              <1>  call %1
-   314                              <1> 
-   314                              <1>  %if 1 < %0
-   314 0000095B 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   314                              <1>  %endif
-   314                              <1> 
+   314 00000955 68[8109]E84BF783C4-             cdecl   puts, .s0
+   314 0000095D 02                 
    315                                  
    316                                          ; load Kernel
-   317                                          cdecl   read_lba, BOOT, BOOT_SECT, KERNEL_SECT, BOOT_END
-   317                              <1> 
-   317                              <1>  %rep %0 - 1
-   317                              <1>  push %-1:-1
-   317                              <1>  %rotate -1
-   317                              <1>  %endrep
-   317 0000095E 68009C              <2>  push %-1:-1
-   317                              <2>  %rotate -1
-   317 00000961 6A10                <2>  push %-1:-1
-   317                              <2>  %rotate -1
-   317 00000963 6A10                <2>  push %-1:-1
-   317                              <2>  %rotate -1
-   317 00000965 68[9E00]            <2>  push %-1:-1
-   317                              <2>  %rotate -1
-   317                              <1>  %rotate -1
-   317                              <1> 
-   317 00000968 E8CBFC              <1>  call %1
-   317                              <1> 
-   317                              <1>  %if 1 < %0
-   317 0000096B 83C408              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   317                              <1>  %endif
-   317                              <1> 
+   317 0000095E 68009C6A106A1068-               cdecl   read_lba, BOOT, BOOT_SECT, KERNEL_SECT, BOOT_END
+   317 00000966 [9E00]E8CBFC83C408 
    318                                  
    319 0000096E 83F810                          cmp     ax, KERNEL_SECT
    320 00000971 740C                    .10Q:   jz      .10E
-   321                                  .10T:   cdecl   puts, .e0
-   321                              <1> .10T: 
-   321                              <1> 
-   321                              <1>  %rep %0 - 1
-   321                              <1>  push %-1:-1
-   321                              <1>  %rotate -1
-   321                              <1>  %endrep
-   321 00000973 68[9009]            <2>  push %-1:-1
-   321                              <2>  %rotate -1
-   321                              <1>  %rotate -1
-   321                              <1> 
-   321 00000976 E82DF7              <1>  call %1
-   321                              <1> 
-   321                              <1>  %if 1 < %0
-   321 00000979 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   321                              <1>  %endif
-   321                              <1> 
+   321 00000973 68[9009]E82DF783C4-     .10T:   cdecl   puts, .e0
+   321 0000097B 02                 
    322 0000097C E846F7                          call    reboot
    323                                  .10E:
    324                                  
@@ -2452,22 +1433,8 @@
    331                                  stage_6:
    332                                  
    333                                          ; put char
-   334                                          cdecl   puts, .s0
-   334                              <1> 
-   334                              <1>  %rep %0 - 1
-   334                              <1>  push %-1:-1
-   334                              <1>  %rotate -1
-   334                              <1>  %endrep
-   334 000009AC 68[C509]            <2>  push %-1:-1
-   334                              <2>  %rotate -1
-   334                              <1>  %rotate -1
-   334                              <1> 
-   334 000009AF E8F4F6              <1>  call %1
-   334                              <1> 
-   334                              <1>  %if 1 < %0
-   334 000009B2 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   334                              <1>  %endif
-   334                              <1> 
+   334 000009AC 68[C509]E8F4F683C4-             cdecl   puts, .s0
+   334 000009B4 02                 
    335                                  
    336                                          ; wait until user approves
    337                                  
@@ -2502,26 +1469,8 @@
    361 000009FD 53                      	push	bx
    362 000009FE 51                      	push	cx
    363                                  
-   364                                          cdecl   memcpy, 0x7800, .s0, .s1 - .s0
-   364                              <1> 
-   364                              <1>  %rep %0 - 1
-   364                              <1>  push %-1:-1
-   364                              <1>  %rotate -1
-   364                              <1>  %endrep
-   364 000009FF 6A10                <2>  push %-1:-1
-   364                              <2>  %rotate -1
-   364 00000A01 68[4A0A]            <2>  push %-1:-1
-   364                              <2>  %rotate -1
-   364 00000A04 680078              <2>  push %-1:-1
-   364                              <2>  %rotate -1
-   364                              <1>  %rotate -1
-   364                              <1> 
-   364 00000A07 E862FC              <1>  call %1
-   364                              <1> 
-   364                              <1>  %if 1 < %0
-   364 00000A0A 83C406              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   364                              <1>  %endif
-   364                              <1> 
+   364 000009FF 6A1068[4A0A]680078-             cdecl   memcpy, 0x7800, .s0, .s1 - .s0
+   364 00000A07 E862FC83C406       
    365                                  
    366                                          ; read the sector of root directory
    367 00000A0D BB2002                          mov     bx, 32 + 256 + 256                               ; (reserved sect) + (FAT0) + (FAT1)
@@ -2529,72 +1478,19 @@
    369                                  .10L:
    370                                  
    371                                          ; read one sect(== 16 entry)
-   372                                          cdecl   read_lba, BOOT, bx, 1, 0x7600
-   372                              <1> 
-   372                              <1>  %rep %0 - 1
-   372                              <1>  push %-1:-1
-   372                              <1>  %rotate -1
-   372                              <1>  %endrep
-   372 00000A13 680076              <2>  push %-1:-1
-   372                              <2>  %rotate -1
-   372 00000A16 6A01                <2>  push %-1:-1
-   372                              <2>  %rotate -1
-   372 00000A18 53                  <2>  push %-1:-1
-   372                              <2>  %rotate -1
-   372 00000A19 68[9E00]            <2>  push %-1:-1
-   372                              <2>  %rotate -1
-   372                              <1>  %rotate -1
-   372                              <1> 
-   372 00000A1C E817FC              <1>  call %1
-   372                              <1> 
-   372                              <1>  %if 1 < %0
-   372 00000A1F 83C408              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   372                              <1>  %endif
-   372                              <1> 
+   372 00000A13 6800766A015368-                 cdecl   read_lba, BOOT, bx, 1, 0x7600
+   372 00000A1A [9E00]E817FC83C408 
    373 00000A22 83F800                          cmp     ax, 0
    374 00000A25 741F                            je      .10E
    375                                  
    376                                          ; search file name from directory entry
-   377                                          cdecl   fat_find_file
-   377                              <1> 
-   377                              <1>  %rep %0 - 1
-   377                              <1>  push %-1:-1
-   377                              <1>  %rotate -1
-   377                              <1>  %endrep
-   377                              <1>  %rotate -1
-   377                              <1> 
-   377 00000A27 E83000              <1>  call %1
-   377                              <1> 
-   377                              <1>  %if 1 < %0
-   377                              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   377                              <1>  %endif
-   377                              <1> 
+   377 00000A27 E83000                          cdecl   fat_find_file
    378 00000A2A 83F800                          cmp     ax, 0
    379 00000A2D 7414                            je      .12E
    380                                  
    381 00000A2F 053E02                          add     ax, 32 + 256 + 256 + 32 - 2                     ; add offset to sector location
-   382                                          cdecl   read_lba, BOOT, ax, 1, 0x7800
-   382                              <1> 
-   382                              <1>  %rep %0 - 1
-   382                              <1>  push %-1:-1
-   382                              <1>  %rotate -1
-   382                              <1>  %endrep
-   382 00000A32 680078              <2>  push %-1:-1
-   382                              <2>  %rotate -1
-   382 00000A35 6A01                <2>  push %-1:-1
-   382                              <2>  %rotate -1
-   382 00000A37 50                  <2>  push %-1:-1
-   382                              <2>  %rotate -1
-   382 00000A38 68[9E00]            <2>  push %-1:-1
-   382                              <2>  %rotate -1
-   382                              <1>  %rotate -1
-   382                              <1> 
-   382 00000A3B E8F8FB              <1>  call %1
-   382                              <1> 
-   382                              <1>  %if 1 < %0
-   382 00000A3E 83C408              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   382                              <1>  %endif
-   382                              <1> 
+   382 00000A32 6800786A015068-                 cdecl   read_lba, BOOT, ax, 1, 0x7800
+   382 00000A39 [9E00]E8F8FB83C408 
    383                                  
    384 00000A41 EB03                            jmp     .10E
    385                                  .12E:
@@ -2634,26 +1530,8 @@
    418 00000A67 80640B18                        and     [si + 11], byte 0x18                            ; check file type
    419 00000A6B 7516                            jnz      .12E                                            ; if (directory/label) => .12E
    420                                  
-   421                                          cdecl   memcmp, si, .s0, 8 + 3                          ; AX = memcmp(compare file name)
-   421                              <1> 
-   421                              <1>  %rep %0 - 1
-   421                              <1>  push %-1:-1
-   421                              <1>  %rotate -1
-   421                              <1>  %endrep
-   421 00000A6D 6A0B                <2>  push %-1:-1
-   421                              <2>  %rotate -1
-   421 00000A6F 68[8E0A]            <2>  push %-1:-1
-   421                              <2>  %rotate -1
-   421 00000A72 56                  <2>  push %-1:-1
-   421                              <2>  %rotate -1
-   421                              <1>  %rotate -1
-   421                              <1> 
-   421 00000A73 E80FFC              <1>  call %1
-   421                              <1> 
-   421                              <1>  %if 1 < %0
-   421 00000A76 83C406              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   421                              <1>  %endif
-   421                              <1> 
+   421 00000A6D 6A0B68[8E0A]56E80F-             cdecl   memcmp, si, .s0, 8 + 3                          ; AX = memcmp(compare file name)
+   421 00000A75 FC83C406           
    422 00000A79 83F800                          cmp     ax, 0                                           ; if not correspond => .12E
    423 00000A7C 7505                            jne     .12E
    424                                  
@@ -2826,20 +1704,7 @@
    570 00000B7B FB                              sti
    571                                  
    572                                          ; read file
-   573                                          cdecl   read_file
-   573                              <1> 
-   573                              <1>  %rep %0 - 1
-   573                              <1>  push %-1:-1
-   573                              <1>  %rotate -1
-   573                              <1>  %endrep
-   573                              <1>  %rotate -1
-   573                              <1> 
-   573 00000B7C E87DFE              <1>  call %1
-   573                              <1> 
-   573                              <1>  %if 1 < %0
-   573                              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
-   573                              <1>  %endif
-   573                              <1> 
+   573 00000B7C E87DFE                          cdecl   read_file
    574                                  
    575                                          ; set up interrupt mask(for protect mode)
    576 00000B7F FA                              cli

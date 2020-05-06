@@ -40,7 +40,7 @@ FAT_ROOT:
             db      'SPECIAL ', 'TXT'                           ; + 0:volume label
             db      ATTR_ARCHIVE                                ; +11:type
             db      0x00                                        ; +12:(reserved)
-            db      0                                           ; +13:TS
+            db      0x00                                        ; +13:TS
             dw      ( 0 << 11) | ( 0 << 5) | (0 / 2)            ; +14:created time
             dw      ( 0 <<  9) | ( 0 << 5) | ( 1)               ; +16:created day
             dw      ( 0 <<  9) | ( 0 << 5) | ( 1)               ; +18:accessed day
