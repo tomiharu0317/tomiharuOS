@@ -17,7 +17,7 @@ ctrl_alt_end:
             btr     [.key_state], eax                               ;   // clear flag
 .10E:                                                               ; }
 
-            ; judge whether target key pressed
+            ; judge whether target keys are pressed
             mov     eax, 0x1D                                       ; [Ctrl]
             bt      [.key_state], eax                               ; CF = .key_state[0x1D]
             jnc     .20E
