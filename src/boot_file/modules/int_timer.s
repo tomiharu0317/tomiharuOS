@@ -61,4 +61,4 @@ int_timer:
             iret
 
 ALIGN 4, db 0
-TIMER_COUNT:    dq 0
+TIMER_COUNT:    dd 0
