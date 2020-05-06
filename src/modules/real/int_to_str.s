@@ -34,9 +34,9 @@ int_to_str:
         ; judge wether signed or not
 
         test    bx, 0b0001                      ; if (flags & 0x01) // if sined ZF = 0
-.10Q    je      .10E                            ; {                 // if not   ZF = 1 and jmp
+.10Q:   je      .10E                            ; {                 // if not   ZF = 1 and jmp
         cmp     ax, 0                           ;   if (val < 0)    // CF = 1, ZF = 0
-.12Q    jge     .12E                            ;   {               // if val >= 0 jmp(cuz no necescity)
+.12Q:   jge     .12E                            ;   {               // if val >= 0 jmp(cuz no necescity)
         or      bx, 0b0010                      ;       flags |= 2; // set B1
                                                 ; }}
 .12E:
@@ -45,9 +45,9 @@ int_to_str:
         ; sing output judgement
 
         test    bx, 0b0010
-.20Q    je      .20E
+.20Q:   je      .20E
         cmp     ax, 0
-.22Q    jge     .22F
+.22Q:   jge     .22F
         neg     ax                              ; sign inversion
         mov     [si], byte '-'                  ; display sign
         jmp     .22E
