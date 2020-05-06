@@ -257,7 +257,6 @@ LDT:            dq  0x0000000000000000                          ; NULL
 .ds_task_4:     dq  0x00CFF2000000FFFF                          ; DATA 4G
 .ds_task_5:     dq  0x00CFF2000000FFFF                          ; DATA 4G
 .ds_task_6:     dq  0x00CFF2000000FFFF                          ; DATA 4G
-
 .end:
 
 CS_TASK_0       equ (.cs_task_0 - LDT) | 4                      ; cs selector for task0 // set bit 2(TI)
