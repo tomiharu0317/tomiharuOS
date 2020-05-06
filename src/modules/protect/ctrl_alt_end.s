@@ -1,3 +1,10 @@
+;*****************************************************************
+; Warning!
+; There is a bug somewhere in this process.
+; (probably line[36:39]???)
+;*****************************************************************
+
+
 ctrl_alt_end:
 
             ; construct stack frame
