@@ -23,5 +23,5 @@ reboot:
 
         ; strings data
 
-.s0     db  0x0A, 0x0D, "Push SPACE key to reboot...", 0
-.s1     db  0x0A, 0x0D, 0x0A, 0x0D, 0
+.s0:    db  0x0A, 0x0D, "Push SPACE key to reboot...", 0
+.s1:    db  0x0A, 0x0D, 0x0A, 0x0D, 0
