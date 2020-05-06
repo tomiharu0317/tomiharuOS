@@ -37,6 +37,10 @@ draw_pixel:
             ; color specification
             mov     ecx, [ebp + 16]
 
+%ifdef      USE_TEST_AND_SET
+            cdecl   test_and_set, IN_USE
+%endif
+
             ;------------------------------------------------------------------------
 
             cdecl   vga_set_read_plane, 0x03                    ; writing plane : luminance(I)
@@ -54,6 +58,11 @@ draw_pixel:
             cdecl   vga_set_read_plane, 0x00                    ; writing plane : blue(B)
             cdecl   vga_set_write_plane, 0x01                   ; reading plane : blue(B)
             cdecl   vram_bit_copy, ebx, edi, 0x01, ecx
+
+%ifdef      USE_TEST_AND_SET
+
+            mov     [IN_USE], dword 0
+%endif
 
             ; return registers
             pop     edi
